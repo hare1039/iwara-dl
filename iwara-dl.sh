@@ -38,10 +38,10 @@ do
             PARSE_AS="username"
             ;;
         u)
-            export IWARA_USER=${OPTARG}
+            IWARA_USER=${OPTARG}
             ;;
         p)
-            export IWARA_PASS=${OPTARG}
+            IWARA_PASS=${OPTARG}
             ;;
         c)
             CDUSER="TRUE"
