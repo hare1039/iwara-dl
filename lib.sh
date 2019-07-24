@@ -38,6 +38,7 @@ iwara-dl-by-videoid()
     local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
     if [[ "$title" == "" ]]; then
         echo "title missing at ${videoid}. Skip."
+        DOWNLOAD_FAILED_LIST+=("${videoid}")
         return
     fi
     local filename=$(sed 's/[:|/?";*<>]/-/g' <<< "${title}-${videoid}.mp4")
@@ -52,7 +53,9 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            curl --retry ${IWARA_RETRY} -C- ${SESSION} -o"$filename" "https:$(_jq '.uri')"
+            if ! $(curl -o"$filename" --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"); then
+                DOWNLOAD_FAILED_LIST+=("${videoid}")
+            fi
         fi
     done
 }

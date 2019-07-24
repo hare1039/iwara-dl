@@ -8,7 +8,7 @@ fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
 source $SCRIPTPATH/lib.sh;
-IWARA_RETRY="5"
+DOWNLOAD_FAILED_LIST=()
 
 trap '
   trap - INT # restore default INT handler
@@ -16,7 +16,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-h] [-s] [-r] [-R [R]] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
+usage: iwara-dl.sh [-h] [-s] [-r] [-f] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
 
 positional arguments:
   url
@@ -25,8 +25,8 @@ optional arguments:
   -h       show this help message and exit
   -u [U]   username
   -p [P]   password
-  -R [R]   retry times(default = 5)
   -r       try resume download
+  -f       do not retry on failed download
   -t       treat input url as usernames
   -c       cd to each username folder. Used only when specify -t
   -s       makes shallow update: quiet mode and only download users first page
@@ -34,7 +34,7 @@ EOF
 }
 
 
-while getopts “tnu:p:csrhR” argv; do
+while getopts “tnu:p:csrhf” argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -54,8 +54,8 @@ while getopts “tnu:p:csrhR” argv; do
         r)
             RESUME_DL="TRUE"
             ;;
-        R)
-            IWARA_RETRY="${OPTARG}"
+        f)
+            IWARA_RETRY="FALSE"
             ;;
         * | h)
             usage
@@ -86,4 +86,18 @@ else
             iwara-dl-by-videoid "$url"
         fi
     done
+fi
+
+if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
+    echo "Download failed on these videoid:"
+    for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+        echo "$id"
+    done
+    if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
+        echo "Try resuming..."
+        RESUME_DL="TRUE"
+        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+            iwara-dl-by-videoid "$id"
+        done
+    fi
 fi
