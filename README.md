@@ -2,9 +2,9 @@
 
 This program downloads `ecchi.iwara.tv` videos
 
-Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl` 
+Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl`
 
-# Dependency 
+# Dependency
 ```
 bash
 curl
@@ -23,6 +23,7 @@ optional arguments:
   -h       show this help message and exit
   -u [U]   username
   -p [P]   password
+  -R [R]   retry times(default = 5)
   -r       try resume download
   -t       treat input url as usernames
   -c       cd to each username folder. Used only when specify -t
