@@ -12,8 +12,26 @@ trap '
   trap - INT # restore default INT handler
   kill -s INT "$$"
 ' INT
+usage() {
+    cat - <<EOF
+usage: iwara-dl.sh [-h] [-s] [-r] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
 
-while getopts “tnu:p:csr” argv
+positional arguments:
+  url
+
+optional arguments:
+  -h       show this help message and exit
+  -u [U]   username
+  -p [P]   password
+  -r       try resume download
+  -t       treat input url as usernames
+  -c       cd to each username folder. Used only when specify -t
+  -s       makes shallow update: quiet mode and only download users first page
+EOF
+}
+
+
+while getopts “tnu:p:csrh” argv
 do
     case $argv in
         t)
@@ -34,7 +52,8 @@ do
         r)
             RESUME_DL="TRUE"
             ;;
-        *)
+        * | h)
+            usage
             exit
             ;;
     esac
