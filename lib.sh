@@ -1,5 +1,7 @@
 PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import lib as page;"
 
+echox() { if ! [[ "$QUIET" ]]; then echo $*; fi }
+
 iwara-login()
 {
     if ! [[ "${SESSION}" ]]; then
@@ -16,7 +18,7 @@ get-html-from-url()
     HTML=$(curl ${SESSION} "$URL" --silent)
 
     if [[ "${IWARA_USER}" ]] && echo $HTML | python3 -c "$PYCHECK page.is_private(html);"; then
-        echo "${videoid} looks like private video. Logging in..."
+        echox "${videoid} looks like private video. Logging in..."
         iwara-login
         HTML=$(curl ${SESSION} "https://ecchi.iwara.tv/videos/${videoid}" --silent)
     fi
@@ -28,17 +30,15 @@ iwara-dl-by-videoid()
     get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
     local html=$HTML
 
-    echo $html | python3 -c "$PYCHECK page.grep_keywords(html);"
-    if echo $html | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
-        youtube-dl $(echo $html | python3 -c "$PYCHECK page.is_youtube(html);")
+    if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
+        youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
         return
     fi
 
-    local title=$(echo $html | python3 -c "$PYCHECK page.parse_title(html);")
+    local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
     local filename=$(sed 's/[:|/?";*<>]/-/g' <<< "${title}-${videoid}.mp4")
-    echo "Downloading: $filename"
-    if [[ -f "$filename" ]]; then
-        echo "$filename exist. Skip."
+    if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
+        echox "$filename exist. Skip."
         return
     fi
     for row in $(curl --silent ${SESSION} "https://ecchi.iwara.tv/api/video/${videoid}" | jq -r ".[] | @base64"); do
@@ -46,6 +46,8 @@ iwara-dl-by-videoid()
             echo ${row} | base64 --decode | jq -r ${1}
         }
         if [[ $(_jq ".resolution") == "Source" ]]; then
+            echo "DL: $filename"
+            echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
             curl -C- ${SESSION} -o"$filename" "https:$(_jq '.uri')"
         fi
     done
@@ -62,7 +64,7 @@ iwara-dl-by-url()
     local URL=$1
     get-html-from-url ${URL}
     local html=$HTML
-    IFS='`' read -ra ids <<< $(echo $html | python3 -c "$PYCHECK page.find_videoid(html);")
+    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_videoid(html);")
     for id in ${ids[@]}; do
         iwara-dl-by-videoid ${id}
     done
@@ -73,7 +75,7 @@ iwara-dl-user()
     local username=$1
     get-html-from-url "https://ecchi.iwara.tv/users/${username}/videos"
     local html=$HTML
-    local max_page=$(echo $html | python3 -c "$PYCHECK page.find_max_user_video_page(html);")
+    local max_page=$(echo "$html" | python3 -c "$PYCHECK page.find_max_user_video_page(html);")
     if [[ "$2" ]]; then
         max_page=$2
     fi
@@ -82,7 +84,12 @@ iwara-dl-user()
     done
 }
 
-iwara-update-user()
+iwara-dl-update-user()
 {
-    iwara-dl-user $1 "0" # set $2(max_page) == 0
+    if [[ "$SHALLOW_UPDATE" ]]; then
+        export QUIET="TRUE"
+        iwara-dl-user $1 "0" # set $2(max_page) == 0
+    else
+        iwara-dl-user "$user"
+    fi
 }

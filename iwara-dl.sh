@@ -13,7 +13,7 @@ trap '
   kill -s INT "$$"
 ' INT
 
-while getopts “tnu:p:cs” argv
+while getopts “tnu:p:csr” argv
 do
     case $argv in
         t)
@@ -31,6 +31,9 @@ do
         s)
             SHALLOW_UPDATE="TRUE"
             ;;
+        r)
+            RESUME_DL="TRUE"
+            ;;
         *)
             exit
             ;;
@@ -40,21 +43,13 @@ shift $((OPTIND-1))
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "$@"; do
-        echo "$user"
+        echo "[$user]"
         if [[ "$CDUSER" ]]; then
             cd "$user"
-            if [[ "$SHALLOW_UPDATE" ]]; then
-                iwara-update-user "$user"
-            else
-                iwara-dl-user "$user"
-            fi
+            iwara-dl-update-user "$user"
             cd "$OLDPWD"
         else
-            if [[ "$SHALLOW_UPDATE" ]]; then
-                iwara-update-user "$user"
-            else
-                iwara-dl-user "$user"
-            fi
+            iwara-dl-update-user "$user"
         fi
     done
 else

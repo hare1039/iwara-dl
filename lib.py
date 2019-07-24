@@ -8,7 +8,10 @@ FALSE_VALUE=-1
 
 def parse_title(html):
     fullpage = BeautifulSoup(html, "html.parser")
-    print(fullpage.find("h1", class_="title").string[:75])
+    try:
+        print(fullpage.find("h1", class_="title").string[:75])
+    except:
+        exit(1)
 
 def is_private(html):
     fullpage = BeautifulSoup(html, "html.parser")
@@ -58,7 +61,7 @@ def find_videoid(html):
     urls = set()
     for tag in a_tags:
         if "/videos/" in tag.get("href"):
-            urls.add(tag.get("href").split("/")[-1])
+            urls.add(tag.get("href").split("/")[-1].split("?")[0])
 
     for url in urls:
         print (url, end="`")
