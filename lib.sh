@@ -48,7 +48,7 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            curl -C- ${SESSION} -o"$filename" "https:$(_jq '.uri')"
+            curl --retry ${IWARA_RETRY} -C- ${SESSION} -o"$filename" "https:$(_jq '.uri')"
         fi
     done
 }

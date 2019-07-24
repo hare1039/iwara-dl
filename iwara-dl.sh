@@ -6,7 +6,7 @@ fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
 source $SCRIPTPATH/lib.sh;
-#set -x
+IWARA_RETRY="5"
 
 trap '
   trap - INT # restore default INT handler
@@ -14,7 +14,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-h] [-s] [-r] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
+usage: iwara-dl.sh [-h] [-s] [-r] [-R [R]] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
 
 positional arguments:
   url
@@ -23,6 +23,7 @@ optional arguments:
   -h       show this help message and exit
   -u [U]   username
   -p [P]   password
+  -R [R]   retry times(default = 5)
   -r       try resume download
   -t       treat input url as usernames
   -c       cd to each username folder. Used only when specify -t
@@ -31,17 +32,16 @@ EOF
 }
 
 
-while getopts “tnu:p:csrh” argv
-do
+while getopts “tnu:p:csrhR” argv; do
     case $argv in
         t)
             PARSE_AS="username"
             ;;
         u)
-            IWARA_USER=${OPTARG}
+            IWARA_USER="${OPTARG}"
             ;;
         p)
-            IWARA_PASS=${OPTARG}
+            IWARA_PASS="${OPTARG}"
             ;;
         c)
             CDUSER="TRUE"
@@ -51,6 +51,9 @@ do
             ;;
         r)
             RESUME_DL="TRUE"
+            ;;
+        R)
+            IWARA_RETRY="${OPTARG}"
             ;;
         * | h)
             usage
