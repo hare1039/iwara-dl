@@ -86,9 +86,10 @@ iwara-dl-user()
 
 iwara-dl-update-user()
 {
+    local user=$(printf "$1" | python3 -c "$PYCHECK page.encode(html);")
     if [[ "$SHALLOW_UPDATE" ]]; then
         IWARA_QUIET="TRUE"
-        iwara-dl-user $1 "0" # set $2(max_page) == 0
+        iwara-dl-user "$user" "0" # set $2(max_page) == 0
     else
         iwara-dl-user "$user"
     fi

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$(uname)" == "Darwin" ]; then
     SCRIPT=$(greadlink -f "$0");
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then

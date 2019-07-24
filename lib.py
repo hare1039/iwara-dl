@@ -6,6 +6,10 @@ from bs4 import BeautifulSoup
 TRUE_VALUE = 0
 FALSE_VALUE=-1
 
+def encode(url):
+    import urllib.parse
+    print(urllib.parse.quote(url))
+
 def parse_title(html):
     fullpage = BeautifulSoup(html, "html.parser")
     try:
