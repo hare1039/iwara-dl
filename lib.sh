@@ -1,6 +1,6 @@
 PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import lib as page;"
 
-echox() { if ! [[ "$QUIET" ]]; then echo $*; fi }
+echox() { if ! [[ "$IWARA_QUIET" ]]; then echo $*; fi }
 
 iwara-login()
 {
@@ -87,7 +87,7 @@ iwara-dl-user()
 iwara-dl-update-user()
 {
     if [[ "$SHALLOW_UPDATE" ]]; then
-        export QUIET="TRUE"
+        IWARA_QUIET="TRUE"
         iwara-dl-user $1 "0" # set $2(max_page) == 0
     else
         iwara-dl-user "$user"
