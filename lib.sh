@@ -36,6 +36,10 @@ iwara-dl-by-videoid()
     fi
 
     local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
+    if [[ "$title" == "" ]]; then
+        echo "title missing at ${videoid}. Skip."
+        return
+    fi
     local filename=$(sed 's/[:|/?";*<>]/-/g' <<< "${title}-${videoid}.mp4")
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echox "$filename exist. Skip."
