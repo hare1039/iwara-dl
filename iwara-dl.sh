@@ -7,8 +7,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
-source $SCRIPTPATH/lib.sh;
-DOWNLOAD_FAILED_LIST=()
+source "$SCRIPTPATH/lib.sh";
+export DOWNLOAD_FAILED_LIST=()
 
 trap '
   trap - INT # restore default INT handler
@@ -34,30 +34,31 @@ EOF
 }
 
 
-while getopts “tnu:p:csrhf” argv; do
+while getopts "tnu:p:csrhf" argv; do
     case $argv in
         t)
             PARSE_AS="username"
             ;;
         u)
-            IWARA_USER="${OPTARG}"
+            export IWARA_USER="${OPTARG}"
             ;;
         p)
-            IWARA_PASS="${OPTARG}"
+            export IWARA_PASS="${OPTARG}"
             ;;
         c)
             CDUSER="TRUE"
             ;;
         s)
-            SHALLOW_UPDATE="TRUE"
+            export SHALLOW_UPDATE="TRUE"
             ;;
         r)
-            RESUME_DL="TRUE"
+            export RESUME_DL="TRUE"
+            export OPT_SET_RESUME_DL="TRUE"
             ;;
         f)
-            IWARA_RETRY="FALSE"
+            export IWARA_RETRY="FALSE"
             ;;
-        * | h)
+        h | *)
             usage
             exit
             ;;
@@ -69,11 +70,13 @@ if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "$@"; do
         echo "[$user]"
         if [[ "$CDUSER" ]]; then
-            cd "$user"
+            cd "$user" || continue
             iwara-dl-update-user "$user"
-            cd "$OLDPWD"
+            iwara-dl-retry-dl
+            cd "$OLDPWD" || exit 1
         else
             iwara-dl-update-user "$user"
+            iwara-dl-retry-dl
         fi
     done
 else
@@ -88,16 +91,4 @@ else
     done
 fi
 
-if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
-    echo "Download failed on these videoid:"
-    for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-        echo "$id"
-    done
-    if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
-        echo "Try resuming..."
-        RESUME_DL="TRUE"
-        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-            iwara-dl-by-videoid "$id"
-        done
-    fi
-fi
+iwara-dl-retry-dl

@@ -1,6 +1,7 @@
+#!/usr/bin/env bash
 PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import lib as page;"
 
-echox() { if ! [[ "$IWARA_QUIET" ]]; then echo $*; fi }
+echox() { if ! [[ "$IWARA_QUIET" ]]; then echo "$@"; fi }
 
 iwara-login()
 {
@@ -17,7 +18,7 @@ get-html-from-url()
     local URL=$1
     HTML=$(curl ${SESSION} "$URL" --silent)
 
-    if [[ "${IWARA_USER}" ]] && echo $HTML | python3 -c "$PYCHECK page.is_private(html);"; then
+    if [[ "${IWARA_USER}" ]] && echo "$HTML" | python3 -c "$PYCHECK page.is_private(html);"; then
         echox "${videoid} looks like private video. Logging in..."
         iwara-login
         HTML=$(curl ${SESSION} "https://ecchi.iwara.tv/videos/${videoid}" --silent)
@@ -27,6 +28,10 @@ get-html-from-url()
 iwara-dl-by-videoid()
 {
     local videoid=$1
+    if [[ "$videoid" == "" ]]; then
+        echox 'Hey, I got a empty videoid!'
+        return
+    fi
     get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
     local html=$HTML
 
@@ -53,7 +58,7 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            if ! $(curl -o"$filename" --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"); then
+            if ! curl -o"$filename" --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             fi
         fi
@@ -69,11 +74,11 @@ url-get-id()
 iwara-dl-by-url()
 {
     local URL=$1
-    get-html-from-url ${URL}
+    get-html-from-url "${URL}"
     local html=$HTML
     IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_videoid(html);")
-    for id in ${ids[@]}; do
-        iwara-dl-by-videoid ${id}
+    for id in "${ids[@]}"; do
+        iwara-dl-by-videoid "${id}"
     done
 }
 
@@ -86,18 +91,39 @@ iwara-dl-user()
     if [[ "$2" ]]; then
         max_page=$2
     fi
-    for i in {0..$max_page}; do
+    for i in $(eval echo "{0..$max_page}"); do
         iwara-dl-by-url "https://ecchi.iwara.tv/users/${username}/videos?page=${i}"
     done
 }
 
 iwara-dl-update-user()
 {
-    local user=$(printf "$1" | python3 -c "$PYCHECK page.encode(html);")
+    local user=$(printf "%s" "$1" | python3 -c "$PYCHECK page.encode(html);")
     if [[ "$SHALLOW_UPDATE" ]]; then
         IWARA_QUIET="TRUE"
         iwara-dl-user "$user" "0" # set $2(max_page) == 0
     else
         iwara-dl-user "$user"
+    fi
+}
+
+iwara-dl-retry-dl()
+{
+    if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
+        echo "Download failed on these videoid:"
+        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+            echo "$id"
+        done
+        if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
+            echo "Try resuming..."
+            export RESUME_DL="TRUE"
+            for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+                iwara-dl-by-videoid "$id"
+            done
+            if ! [[ "$OPT_SET_RESUME_DL" ]]; then
+                unset RESUME_DL
+            fi
+            DOWNLOAD_FAILED_LIST=()
+        fi
     fi
 }
