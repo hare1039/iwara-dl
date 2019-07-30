@@ -3,6 +3,13 @@ PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}')
 
 echox() { if ! [[ "$IWARA_QUIET" ]]; then echo "$@"; fi }
 
+calc-argc()
+{
+    local argv_count=0
+    for url in "$@"; do argv_count=$((V + 1)) ; done
+    echo "$argv_count"
+}
+
 iwara-login()
 {
     if ! [[ "${SESSION}" ]]; then

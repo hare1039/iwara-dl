@@ -33,8 +33,7 @@ optional arguments:
 EOF
 }
 
-
-while getopts "tnu:p:csrhf" argv; do
+while getopts "tu:p:csrhf" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -65,6 +64,11 @@ while getopts "tnu:p:csrhf" argv; do
     esac
 done
 shift $((OPTIND-1))
+
+if ! (( $(calc-argc "$@") )); then
+    echo "Missing [urls/ids]";
+    exit 0;
+fi
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "$@"; do
