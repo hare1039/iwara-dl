@@ -7,7 +7,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
-source "$SCRIPTPATH/lib.sh";
+source "$SCRIPTPATH/iwaralib.sh";
 export DOWNLOAD_FAILED_LIST=()
 
 trap '
@@ -68,9 +68,9 @@ shift $((OPTIND-1))
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "$@"; do
-        echo "[$user]"
+        echo "[[$user]]"
         if [[ "$CDUSER" ]]; then
-            cd "$user" || continue
+            cd "$user" || { echo "Skip user [$user]"; continue; }
             iwara-dl-update-user "$user"
             iwara-dl-retry-dl
             cd "$OLDPWD" || exit 1
@@ -83,7 +83,8 @@ else
     for url in "$@"; do
         if [[ "$url" == *"iwara.tv/videos"* ]]; then
             iwara-dl-by-videoid $(url-get-id "$url")
-        elif [[ "$url" == *"iwara.tv/users"* ]]; then
+        elif [[ "$url" == *"iwara.tv/users"* ]] ||
+             [[ "$url" == *"iwara.tv/playlist"* ]]; then
             iwara-dl-by-url "$url"
         else
             iwara-dl-by-videoid "$url"

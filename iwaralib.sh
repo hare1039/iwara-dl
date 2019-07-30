@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import lib as page;"
+PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import iwaralib as page;"
 
 echox() { if ! [[ "$IWARA_QUIET" ]]; then echo "$@"; fi }
 
