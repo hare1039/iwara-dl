@@ -16,7 +16,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-h] [-s] [-r] [-f] [-u [U]] [-p [P]] [-t] [-c] [url [url ...]]
+usage: iwara-dl.sh [-h] [-u [U]] [-p [P]] [-r] [-f] [-t] [-c] [-s] [url [url ...]]
 
 positional arguments:
   url
