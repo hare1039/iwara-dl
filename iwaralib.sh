@@ -53,7 +53,7 @@ iwara-dl-by-videoid()
         DOWNLOAD_FAILED_LIST+=("${videoid}")
         return
     fi
-    local filename=$(sed 's/[:|/?";*<>]/-/g' <<< "${title}-${videoid}.mp4")
+    local filename=$(sed 's/[:|/?";*\<>]/-/g' <<< "${title}-${videoid}.mp4")
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echox "$filename exist. Skip."
         return
