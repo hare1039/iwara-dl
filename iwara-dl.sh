@@ -16,7 +16,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-h] [-u [U]] [-p [P]] [-r] [-f] [-t] [-c] [-s] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsd] [url [url ...]]
 
 positional arguments:
   url
@@ -30,10 +30,12 @@ optional arguments:
   -t       treat input url as usernames
   -c       cd to each username folder. Used only when specify -t
   -s       makes shallow update: quiet mode and only download users first page
+  -d       generate list of names from current folder and try to update them all
+           implies -t -c -s
 EOF
 }
 
-while getopts "tu:p:csrhf" argv; do
+while getopts "tu:p:csrhfd" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -57,6 +59,14 @@ while getopts "tu:p:csrhf" argv; do
         f)
             export IWARA_RETRY="FALSE"
             ;;
+        d)
+            PARSE_AS="username"
+            CDUSER="TRUE"
+            export SHALLOW_UPDATE="TRUE"
+
+            update_list=()
+            for d in */ ; do update_list+=("${d::-1}"); done
+            ;;
         h | *)
             usage
             exit
@@ -65,13 +75,16 @@ while getopts "tu:p:csrhf" argv; do
 done
 shift $((OPTIND-1))
 
-if ! (( $(calc-argc "$@") )); then
+args=("$@")
+for u in "${update_list[@]}"; do args+=("$u"); done
+
+if ! (( $(calc-argc "${args[@]}") )); then
     echo "Missing [urls/ids]";
     exit 0;
 fi
 
 if [[ "${PARSE_AS}" == "username" ]]; then
-    for user in "$@"; do
+    for user in "${args[@]}"; do
         echo "[[$user]]"
         if [[ "$CDUSER" ]]; then
             cd "$user" || { echo "Skip user [$user]"; continue; }
@@ -84,7 +97,7 @@ if [[ "${PARSE_AS}" == "username" ]]; then
         fi
     done
 else
-    for url in "$@"; do
+    for url in "${args[@]}"; do
         if [[ "$url" == *"iwara.tv/videos"* ]]; then
             iwara-dl-by-videoid $(url-get-id "$url")
         elif [[ "$url" == *"iwara.tv/users"* ]] ||
