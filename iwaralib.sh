@@ -13,6 +13,7 @@ calc-argc()
 iwara-login()
 {
     if ! [[ "${SESSION}" ]]; then
+        echox "Logging in..."
         SESSION=$(curl 'https://ecchi.iwara.tv/user/login' -v \
                        --data "name=${IWARA_USER}&pass=${IWARA_PASS}&form_build_id=form-jacky&form_id=user_login&op=%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3" 2>&1 \
                       | grep cookie | awk '{print $3}')
@@ -26,7 +27,7 @@ get-html-from-url()
     HTML=$(curl ${SESSION} "$URL" --silent)
 
     if [[ "${IWARA_USER}" ]] && echo "$HTML" | python3 -c "$PYCHECK page.is_private(html);"; then
-        echox "${videoid} looks like private video. Logging in..."
+        echox "${videoid} looks like private video."
         iwara-login
         HTML=$(curl ${SESSION} "https://ecchi.iwara.tv/videos/${videoid}" --silent)
     fi
@@ -40,7 +41,7 @@ iwara-dl-by-videoid()
         return
     fi
     get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
-    local html=$HTML
+    local html="$HTML"
 
     if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
         youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
@@ -49,11 +50,11 @@ iwara-dl-by-videoid()
 
     local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
     if [[ "$title" == "" ]]; then
-        echo "title missing at ${videoid}. Skip."
+        echox "title missing at page ${videoid}. Skip."
         DOWNLOAD_FAILED_LIST+=("${videoid}")
         return
     fi
-    local filename=$(sed 's/[:|/?";*\<>]/-/g' <<< "${title}-${videoid}.mp4")
+    local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4")
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echox "$filename exist. Skip."
         return
