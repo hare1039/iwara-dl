@@ -66,7 +66,7 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            if ! curl -o"$filename" --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"; then
+            if ! curl -o"$filename" ${PRINT_NAME_ONLY} --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             fi
         fi

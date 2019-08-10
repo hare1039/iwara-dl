@@ -16,7 +16,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsd] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsdn] [url [url ...]]
 
 positional arguments:
   url
@@ -32,10 +32,11 @@ optional arguments:
   -s       makes shallow update: quiet mode and only download users first page
   -d       generate list of names from current folder and try to update them all
            implies -t -c -s
+  -n       output downloaded file name only(hides curl download bar)
 EOF
 }
 
-while getopts "tu:p:csrhfd" argv; do
+while getopts "tu:p:csrhfdn" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -67,6 +68,10 @@ while getopts "tu:p:csrhfd" argv; do
             update_list=()
             for d in */ ; do update_list+=("${d::-1}"); done
             ;;
+        n)
+            export PRINT_NAME_ONLY="--silent"
+            export IWARA_QUIET="TRUE"
+            ;;
         h | *)
             usage
             exit
@@ -85,7 +90,10 @@ fi
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
-        echo "[[$user]]"
+        if ! [[ "$PRINT_NAME_ONLY" ]]; then
+            echo "[[$user]]"
+        fi
+
         if [[ "$CDUSER" ]]; then
             cd "$user" || { echo "Skip user [$user]"; continue; }
             iwara-dl-update-user "$user"
