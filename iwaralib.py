@@ -76,3 +76,14 @@ def find_max_user_video_page(html):
         print(fullpage.find("li", class_="pager-last").find("a").get("href").split("=")[-1])
     except:
         print(0)
+
+
+# iwara-friend functions
+def find_pending_user_list(html):
+    fullpage = BeautifulSoup(html, "html.parser")
+    ids = set()
+    for btn in fullpage.find_all("button", class_="accept-friend"):
+        ids.add(btn.get("data-frid"))
+
+    for idv in ids:
+        print (idv, end="`")
