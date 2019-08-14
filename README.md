@@ -2,6 +2,8 @@
 
 This program downloads `ecchi.iwara.tv` videos
 
+For `iwara-friend` instructions, please go [here](https://github.com/hare1039/iwara-dl/blob/master/README-friend-func.md)
+
 Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl`
 
 # Dependency
