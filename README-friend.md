@@ -2,10 +2,14 @@
 
 This program controls your friend list. e.g. Accept all pending friend requests
 
+# Dependency
+
+Same as iwara-dl
+
 # Usage:
 ```
 # accept all pending requests
-iwara-friend.sh 
+iwara-friend.sh
 # delete all pending requests
 iwara-friend.sh -x
 ```
