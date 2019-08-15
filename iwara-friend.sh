@@ -30,7 +30,7 @@ iwara-all-request()
 {
     local max_page=$1
     accept_counter=0
-    for i in $(eval echo "{0..$max_page}"); do
+    for i in $(eval echo "{$max_page..0}"); do
         get-html-from-url "https://ecchi.iwara.tv/user/friends?page=${i}"
         IFS='`' read -ra ids <<< $(echo "$HTML" | python3 -c "$PYCHECK page.find_pending_user_list(html);")
         for id in "${ids[@]}"; do
