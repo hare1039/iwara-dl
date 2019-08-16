@@ -90,9 +90,7 @@ fi
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
-        if ! [[ "$PRINT_NAME_ONLY" ]]; then
-            echo "[[$user]]"
-        fi
+        echo "[[$user]]"
 
         if [[ "$CDUSER" ]]; then
             cd "$user" || { echo "Skip user [$user]"; continue; }
