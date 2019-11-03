@@ -1,5 +1,6 @@
 import os
 os.path.join(os.path.dirname(__file__))
+import re
 
 from bs4 import BeautifulSoup
 
@@ -9,6 +10,14 @@ FALSE_VALUE=-1
 def encode(url):
     import urllib.parse
     print(urllib.parse.quote(url))
+
+def login_key(html):
+    fullpage = BeautifulSoup(html, "html.parser")
+    h = fullpage.find("head")
+    capture = h.find("script", text=re.compile("antibot")).string.strip()
+    start = capture.find("\"key\":") + 7 # "key":"
+    end   = capture.find("\"", start)
+    print (capture[start:end])
 
 def parse_title(html):
     fullpage = BeautifulSoup(html, "html.parser")

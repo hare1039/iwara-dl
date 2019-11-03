@@ -14,8 +14,11 @@ iwara-login()
 {
     if ! [[ "${SESSION}" ]]; then
         echox "Logging in..."
+
+        HTML=$(curl "https://ecchi.iwara.tv/user/login" --silent)
+        local antibot=$(echo "$HTML" | python3 -c "$PYCHECK page.login_key(html);")
         SESSION=$(curl 'https://ecchi.iwara.tv/user/login' -v \
-                       --data "name=${IWARA_USER}&pass=${IWARA_PASS}&form_build_id=form-jacky&form_id=user_login&op=%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3" 2>&1 \
+                       --data "name=${IWARA_USER}&pass=${IWARA_PASS}&form_build_id=form-jacky&form_id=user_login&antibot_key=${antibot}&op=%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3" 2>&1 \
                       | grep cookie | awk '{print $3}')
         SESSION="-HCookie:${SESSION::-1}"
     fi
@@ -66,7 +69,7 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            if ! curl -o"$filename" ${PRINT_NAME_ONLY} --retry 3 -C- ${SESSION} "https:$(_jq '.uri')"; then
+            if ! curl -o "$filename" ${PRINT_NAME_ONLY} -C- ${SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             fi
         fi
