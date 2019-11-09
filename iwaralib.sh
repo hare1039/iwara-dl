@@ -19,9 +19,9 @@ iwara-login()
         local antibot=$(echo "$HTML" | python3 -c "$PYCHECK page.login_key(html);")
         IWARA_SESSION=$(curl 'https://ecchi.iwara.tv/user/login' -v \
                        --data "name=${IWARA_USER}&pass=${IWARA_PASS}&form_build_id=form-jacky&form_id=user_login&antibot_key=${antibot}&op=%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3" 2>&1 \
-                      | grep cookie | awk '{print $3}' | sed 's/cookie //g' | sed 's/;//g')
+                       | grep 'set-cookie' | awk '{print $3}' | sed 's/;//g')
         IWARA_SESSION="-HCookie:${IWARA_SESSION}"
-        echox "Get cookie: '$IWARA_SESSION'"
+        echox "Cookie:'$IWARA_SESSION'"
     fi
 }
 
