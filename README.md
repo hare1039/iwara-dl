@@ -16,7 +16,7 @@ python3 with BeautifulSoup
 
 # Usage:
 ```
-usage: iwara-dl.sh [-h] [-u [U]] [-p [P]] [-r] [-f] [-t] [-c] [-s] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsdn] [url [url ...]]
 
 positional arguments:
   url
@@ -30,6 +30,9 @@ optional arguments:
   -t       treat input url as usernames
   -c       cd to each username folder. Used only when specify -t
   -s       makes shallow update: quiet mode and only download users first page
+  -d       generate list of names from current folder and try to update them all
+           implies -t -c -s
+  -n       output downloaded file name only(hides curl download bar)
 ```
 
 ```
