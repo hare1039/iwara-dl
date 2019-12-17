@@ -10,6 +10,27 @@ calc-argc()
     echo "$argv_count"
 }
 
+add_iwara_ignore_list()
+{
+    local listfile="$1"
+    while read F  ; do
+        echo $F
+        IWARA_IGNORE+=("$F")
+    done < "$listfile"
+}
+
+is_in_iwara_ignore_list()
+{
+    local new_filename="$1"
+    for name in "${IWARA_IGNORE[@]}"; do
+        if [[ *"$name"* == "$new_filename" ]]; then
+            echo "file found"
+            return 1;
+        fi
+    done
+    return 0
+}
+
 iwara-login()
 {
     if ! [[ "${IWARA_SESSION}" ]]; then
@@ -68,6 +89,10 @@ iwara-dl-by-videoid()
             echo ${row} | base64 --decode | jq -r ${1}
         }
         if [[ $(_jq ".resolution") == "Source" ]]; then
+            if is_in_iwara_ignore_list "$filename"; then
+                echox "$filename is in .iwara_ignore list. Skip."
+                return
+            fi
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
             if ! curl -o "$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
@@ -96,7 +121,7 @@ iwara-dl-by-url()
 
 iwara-dl-user()
 {
-    local username=$1
+    local username="$1"
     get-html-from-url "https://ecchi.iwara.tv/users/${username}/videos"
     local html=$HTML
     local max_page=$(echo "$html" | python3 -c "$PYCHECK page.find_max_user_video_page(html);")
