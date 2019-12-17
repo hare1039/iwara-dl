@@ -97,13 +97,13 @@ if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
         echo "[[$user]]"
         if [[ -f ".iwara_ignore" ]]; then
-            add_do_not_dl_list ".iwara_ignore"
+            add_iwara_ignore_list ".iwara_ignore"
         fi
 
         if [[ "$CDUSER" ]]; then
             cd "$user" || { echo "Skip user [$user]"; continue; }
             if [[ -f ".iwara_ignore" ]]; then
-                add_do_not_dl_list ".iwara_ignore"
+                add_iwara_ignore_list ".iwara_ignore"
             fi
             iwara-dl-update-user "$user"
             iwara-dl-retry-dl

@@ -14,21 +14,22 @@ add_iwara_ignore_list()
 {
     local listfile="$1"
     while read F  ; do
-        echo $F
-        IWARA_IGNORE+=("$F")
+        if [[ "$F" != "" ]]; then
+            IWARA_IGNORE+=("$F")
+        fi
     done < "$listfile"
 }
 
 is_in_iwara_ignore_list()
 {
-    local new_filename="$1"
-    for name in "${IWARA_IGNORE[@]}"; do
-        if [[ *"$name"* == "$new_filename" ]]; then
-            echo "file found"
-            return 1;
+    local filename="$1"
+    for ignorename in "${IWARA_IGNORE[@]}"; do
+        if [[ "$filename" == *"$ignorename"* ]]; then
+            true
+            return
         fi
     done
-    return 0
+    false
 }
 
 iwara-login()
@@ -84,15 +85,16 @@ iwara-dl-by-videoid()
         echox "$filename exist. Skip."
         return
     fi
+    if is_in_iwara_ignore_list "$filename"; then
+        echox "$filename is in ignore list. Skip."
+        return
+    fi
+
     for row in $(curl --silent ${IWARA_SESSION} "https://ecchi.iwara.tv/api/video/${videoid}" | jq -r ".[] | @base64"); do
         _jq() {
             echo ${row} | base64 --decode | jq -r ${1}
         }
         if [[ $(_jq ".resolution") == "Source" ]]; then
-            if is_in_iwara_ignore_list "$filename"; then
-                echox "$filename is in .iwara_ignore list. Skip."
-                return
-            fi
             echo "DL: $filename"
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
             if ! curl -o "$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
