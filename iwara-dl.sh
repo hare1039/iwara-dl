@@ -17,7 +17,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsdn] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [url [url ...]]
 
 positional arguments:
   url
@@ -34,6 +34,7 @@ optional arguments:
   -d       generate list of names from current folder and try to update them all
            implies -t -c -s
   -n       output downloaded file name only(hides curl download bar)
+  -i [n]   add a name to iwara ignore list and delete the file
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
@@ -41,7 +42,7 @@ extra:
 EOF
 }
 
-while getopts "tu:p:csrhfdn" argv; do
+while getopts "tu:p:csrhi:fdn" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -76,6 +77,12 @@ while getopts "tu:p:csrhfdn" argv; do
         n)
             export PRINT_NAME_ONLY="--silent"
             export IWARA_QUIET="TRUE"
+            ;;
+        i)
+            IGN_NAME="${OPTARG}"
+            echo "$IGN_NAME" >> .iwara_ignore
+            rm -v *"$IGN_NAME"*
+            exit
             ;;
         h | *)
             usage
