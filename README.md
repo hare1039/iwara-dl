@@ -16,7 +16,7 @@ python3 with BeautifulSoup
 
 # Usage:
 ```
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-rhftcsdn] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [url [url ...]]
 
 positional arguments:
   url
@@ -33,6 +33,11 @@ optional arguments:
   -d       generate list of names from current folder and try to update them all
            implies -t -c -s
   -n       output downloaded file name only(hides curl download bar)
+  -i [n]   add a name to iwara ignore list and delete the file
+
+extra:
+  .iwara_ignore file => newline-saperated list of filenames of skipping download
+
 ```
 
 ```
