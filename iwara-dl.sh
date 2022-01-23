@@ -10,6 +10,7 @@ export SCRIPTPATH=$(dirname "$SCRIPT");
 source "$SCRIPTPATH/iwaralib.sh";
 export DOWNLOAD_FAILED_LIST=()
 export IWARA_IGNORE=()
+export DOWNLOADED_ID_LIST=()
 
 trap '
   trap - INT # restore default INT handler
@@ -99,6 +100,8 @@ if ! (( $(calc-argc "${args[@]}") )); then
     echo "Missing [urls/ids]";
     exit 0;
 fi
+
+load_downloaded_id_list ".iwara_downloaded"
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do

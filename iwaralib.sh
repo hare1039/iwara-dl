@@ -20,11 +20,33 @@ add_iwara_ignore_list()
     done < "$listfile"
 }
 
+load_downloaded_id_list()
+{
+    local listfile="$1"
+    while read F  ; do
+        if [[ "$F" != "" ]]; then
+            DOWNLOADED_ID_LIST+=("$F")
+        fi
+    done < "$listfile"
+}
+
 is_in_iwara_ignore_list()
 {
     local filename="$1"
     for ignorename in "${IWARA_IGNORE[@]}"; do
         if [[ "$filename" == *"$ignorename"* ]]; then
+            true
+            return
+        fi
+    done
+    false
+}
+
+is_downloded()
+{
+    local downloadid="$1"
+    for downloaded_id in "${DOWNLOADED_ID_LIST[@]}"; do
+        if [[ "$downloadid" == *"$downloaded_id"* ]]; then
             true
             return
         fi
@@ -66,11 +88,18 @@ iwara-dl-by-videoid()
         echox 'Hey, I got a empty videoid!'
         return
     fi
+
+    if is_downloded "$videoid"; then
+        echox "Skip: $videoid is in downloaded list."
+        return
+    fi
+
     get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
     local html="$HTML"
 
     if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
         youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
+        echo "$videid" >> .iwara_downloaded
         return
     fi
 
@@ -83,10 +112,12 @@ iwara-dl-by-videoid()
     local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4")
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echox "$filename exist. Skip."
+        echo "$videid" >> .iwara_downloaded
         return
     fi
     if is_in_iwara_ignore_list "$filename"; then
         echox "$filename is in ignore list. Skip."
+        echo "$videid" >> .iwara_downloaded
         return
     fi
 
@@ -99,6 +130,8 @@ iwara-dl-by-videoid()
             echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
             if ! curl -o "$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
+            else
+                echo "$videoid" >> .iwara_downloaded
             fi
         fi
     done
