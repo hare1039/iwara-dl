@@ -12,11 +12,12 @@ bash
 curl
 jq
 python3 with BeautifulSoup
+nkf
 ```
 
 # Usage:
 ```
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [url [url ...]]
 
 positional arguments:
   url
@@ -34,6 +35,7 @@ optional arguments:
            implies -t -c -s
   -n       output downloaded file name only(hides curl download bar)
   -i [n]   add a name to iwara ignore list and delete the file
+  -F [M]   Download videos of people you are following. M:MaxPage
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
