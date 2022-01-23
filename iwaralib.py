@@ -79,6 +79,17 @@ def find_videoid(html):
     for url in urls:
         print (url, end="`")
 
+def find_userid(html):
+    fullpage = BeautifulSoup(html, "html.parser")
+    a_tags = fullpage.find_all("a");
+
+    users = set()
+    for tag in a_tags:
+        if not (tag.get("href") is None):
+            if "/users/" in tag.get("href"):
+                print ( tag.get("href").split("/")[-1].split("?")[0] , end="`")
+                exit
+
 def find_max_user_video_page(html):
     fullpage = BeautifulSoup(html, "html.parser")
     try:
