@@ -113,10 +113,10 @@ elif ! (( $(calc-argc "${args[@]}") )); then
     exit 0;
 fi
 
-load_downloaded_id_list ".iwara_downloaded"
-
 mkdir -p dl
 cd dl
+
+load_downloaded_id_list ".iwara_downloaded"
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
