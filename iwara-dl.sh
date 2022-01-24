@@ -10,6 +10,7 @@ export SCRIPTPATH=$(dirname "$SCRIPT");
 source "$SCRIPTPATH/iwaralib.sh";
 export DOWNLOAD_FAILED_LIST=()
 export IWARA_IGNORE=()
+export DOWNLOADED_ID_LIST=()
 
 trap '
   trap - INT # restore default INT handler
@@ -17,7 +18,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [url [url ...]]
 
 positional arguments:
   url
@@ -35,6 +36,7 @@ optional arguments:
            implies -t -c -s
   -n       output downloaded file name only(hides curl download bar)
   -i [n]   add a name to iwara ignore list and delete the file
+  -F [M]   Download videos of people you are following. M:MaxPage
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
@@ -42,7 +44,7 @@ extra:
 EOF
 }
 
-while getopts "tu:p:csrhi:fdn" argv; do
+while getopts "tu:p:csrhi:fdnF:" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -81,8 +83,13 @@ while getopts "tu:p:csrhi:fdn" argv; do
         i)
             IGN_NAME="${OPTARG}"
             echo "$IGN_NAME" >> .iwara_ignore
+            cd dl
             rm -v *"$IGN_NAME"*
             exit
+            ;;
+        F)
+            PARSE_AS="following"
+            export FOLLOWING_MAXPAGE="${OPTARG}"
             ;;
         h | *)
             usage
@@ -95,10 +102,21 @@ shift $((OPTIND-1))
 args=("$@")
 for u in "${update_list[@]}"; do args+=("$u"); done
 
-if ! (( $(calc-argc "${args[@]}") )); then
+if [[ "${PARSE_AS}" == "following" ]]; then
+    expr "$FOLLOWING_MAXPAGE" + 1 >&/dev/null
+    if ! [ $? -lt 2 ]; then
+        echo "Missing [MaxPage]";
+        exit 0;
+    fi
+elif ! (( $(calc-argc "${args[@]}") )); then
     echo "Missing [urls/ids]";
     exit 0;
 fi
+
+mkdir -p dl
+cd dl
+
+load_downloaded_id_list ".iwara_downloaded"
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
@@ -120,6 +138,8 @@ if [[ "${PARSE_AS}" == "username" ]]; then
             iwara-dl-retry-dl
         fi
     done
+elif [[ "${PARSE_AS}" == "following" ]]; then
+    iwara-dl-subscriptions
 else
     for url in "${args[@]}"; do
         if [[ "$url" == *"iwara.tv/videos"* ]]; then

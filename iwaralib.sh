@@ -20,11 +20,33 @@ add_iwara_ignore_list()
     done < "$listfile"
 }
 
+load_downloaded_id_list()
+{
+    local listfile="$1"
+    while read F  ; do
+        if [[ "$F" != "" ]]; then
+            DOWNLOADED_ID_LIST+=("$F")
+        fi
+    done < "$listfile"
+}
+
 is_in_iwara_ignore_list()
 {
     local filename="$1"
     for ignorename in "${IWARA_IGNORE[@]}"; do
         if [[ "$filename" == *"$ignorename"* ]]; then
+            true
+            return
+        fi
+    done
+    false
+}
+
+is_downloded()
+{
+    local downloadid="$1"
+    for downloaded_id in "${DOWNLOADED_ID_LIST[@]}"; do
+        if [[ "$downloadid" == *"$downloaded_id"* ]]; then
             true
             return
         fi
@@ -66,27 +88,47 @@ iwara-dl-by-videoid()
         echox 'Hey, I got a empty videoid!'
         return
     fi
+
+    if is_downloded "$videoid"; then
+        echox "Skip: $videoid is in downloaded list."
+        return
+    fi
+
     get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
     local html="$HTML"
 
     if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
         youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
+        echo "$videid" >> .iwara_downloaded
         return
     fi
 
     local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
     if [[ "$title" == "" ]]; then
-        echox "title missing at page ${videoid}. Skip."
+        echox "Skip: title missing at page ${videoid}."
         DOWNLOAD_FAILED_LIST+=("${videoid}")
         return
     fi
     local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4")
+
+    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_userid(html);")
+    local tmp="${ids}"
+    tmp=$(echo -n "$tmp" | nkf --url-input)
+    local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}")
+    
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
-        echox "$filename exist. Skip."
+        echo "Skip: $filename exist."
+        echo "$videoid" >> .iwara_downloaded
+        return
+    fi
+    if [[ -f "$videousername/$filename" ]] && ! [[ "$RESUME_DL" ]]; then
+        echox "Skip: $videousername/$filename exist."
+        echo "$videoid" >> .iwara_downloaded
         return
     fi
     if is_in_iwara_ignore_list "$filename"; then
-        echox "$filename is in ignore list. Skip."
+        echox "Skip: $filename is in ignore list."
+        echo "$videoid" >> .iwara_downloaded
         return
     fi
 
@@ -96,9 +138,16 @@ iwara-dl-by-videoid()
         }
         if [[ $(_jq ".resolution") == "Source" ]]; then
             echo "DL: $filename"
-            echo "$html" | python3 -c "$PYCHECK page.grep_keywords(html);"
-            if ! curl -o "$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
+            echo "User: $videousername"
+
+            local sleeptime=$(shuf -i 8-13 -n 1)
+            echo "Sleep: $sleeptime sec"
+            sleep "${sleeptime}s"
+
+            if ! curl --create-dirs -o "${videousername}/$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
+            else
+                echo "$videoid" >> .iwara_downloaded
             fi
         fi
     done
@@ -165,4 +214,12 @@ iwara-dl-retry-dl()
             DOWNLOAD_FAILED_LIST=()
         fi
     fi
+}
+
+iwara-dl-subscriptions()
+{
+    iwara-login
+    for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
+        iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
+    done
 }
