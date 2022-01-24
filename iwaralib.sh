@@ -42,7 +42,7 @@ is_in_iwara_ignore_list()
     false
 }
 
-is_downloded()
+is_downloaded()
 {
     local downloadid="$1"
     for downloaded_id in "${DOWNLOADED_ID_LIST[@]}"; do
@@ -89,7 +89,7 @@ iwara-dl-by-videoid()
         return
     fi
 
-    if is_downloded "$videoid"; then
+    if is_downloaded "$videoid"; then
         echox "Skip: $videoid is in downloaded list."
         return
     fi
@@ -115,7 +115,7 @@ iwara-dl-by-videoid()
     local tmp="${ids}"
     tmp=$(echo -n "$tmp" | nkf --url-input)
     local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}")
-    
+
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echo "Skip: $filename exist."
         echo "$videoid" >> .iwara_downloaded
