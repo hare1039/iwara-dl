@@ -99,7 +99,7 @@ iwara-dl-by-videoid()
 
     if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
         youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
-        echo "$videid" >> .iwara_downloaded
+        echo "$videoid" >> .iwara_downloaded
         return
     fi
 
