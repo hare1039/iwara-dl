@@ -41,6 +41,7 @@ optional arguments:
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
+  dl/.iwara_downloaded file => newline-saperated list of VideoID of skipping download
 
 EOF
 }
