@@ -37,6 +37,7 @@ optional arguments:
   -n       output downloaded file name only(hides curl download bar)
   -i [n]   add a name to iwara ignore list and delete the file
   -F [M]   Download videos of people you are following. M:MaxPage
+           This option need username/password because login. 
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
