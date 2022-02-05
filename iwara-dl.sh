@@ -11,6 +11,7 @@ source "$SCRIPTPATH/iwaralib.sh";
 export DOWNLOAD_FAILED_LIST=()
 export IWARA_IGNORE=()
 export DOWNLOADED_ID_LIST=()
+export DOWNLOADING_ID_LIST=()
 
 trap '
   trap - INT # restore default INT handler
@@ -18,7 +19,7 @@ trap '
 ' INT
 usage() {
     cat - <<EOF
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [-l [f]] [url [url ...]]
 
 positional arguments:
   url
@@ -37,7 +38,8 @@ optional arguments:
   -n       output downloaded file name only(hides curl download bar)
   -i [n]   add a name to iwara ignore list and delete the file
   -F [M]   Download videos of people you are following. M:MaxPage
-           This option need username/password because login. 
+  -l [f]   Download using the VideoID in the [F] VideoID List file.
+           -F/-l options need username/password because login. 
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
@@ -46,7 +48,7 @@ extra:
 EOF
 }
 
-while getopts "tu:p:csrhi:fdnF:" argv; do
+while getopts "tu:p:csrhi:fdnF:l:" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -93,6 +95,10 @@ while getopts "tu:p:csrhi:fdnF:" argv; do
             PARSE_AS="following"
             export FOLLOWING_MAXPAGE="${OPTARG}"
             ;;
+        l)
+            PARSE_AS="videoidListfile"
+            export VIDEO_ID_LIST_FILE="${OPTARG}"
+            ;;
         h | *)
             usage
             exit
@@ -110,6 +116,12 @@ if [[ "${PARSE_AS}" == "following" ]]; then
         echo "Missing [MaxPage]";
         exit 0;
     fi
+elif [[ "${PARSE_AS}" == "videoidListfile" ]]; then
+    if ! [ -e $VIDEO_ID_LIST_FILE ]; then
+        echo "Missing [VideoID List File]" ;
+        exit 0;
+    fi
+    load_downloading_id_list $VIDEO_ID_LIST_FILE
 elif ! (( $(calc-argc "${args[@]}") )); then
     echo "Missing [urls/ids]";
     exit 0;
@@ -142,6 +154,8 @@ if [[ "${PARSE_AS}" == "username" ]]; then
     done
 elif [[ "${PARSE_AS}" == "following" ]]; then
     iwara-dl-subscriptions
+elif [[ "${PARSE_AS}" == "videoidListfile" ]]; then
+    iwara-dl-videoidlistfile
 else
     for url in "${args[@]}"; do
         if [[ "$url" == *"iwara.tv/videos"* ]]; then

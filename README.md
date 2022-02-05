@@ -17,7 +17,7 @@ nkf
 
 # Usage:
 ```
-usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [url [url ...]]
+usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [-l [f]] [url [url ...]]
 
 positional arguments:
   url
@@ -36,7 +36,8 @@ optional arguments:
   -n       output downloaded file name only(hides curl download bar)
   -i [n]   add a name to iwara ignore list and delete the file
   -F [M]   Download videos of people you are following. M:MaxPage
-           This option need username/password because login. 
+  -l [f]   Download using the VideoID in the [F] VideoID List file.
+           -F/-l options need username/password because login. 
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download

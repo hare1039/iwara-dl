@@ -30,6 +30,16 @@ load_downloaded_id_list()
     done < "$listfile"
 }
 
+load_downloading_id_list()
+{
+    local listfile="$1"
+    while read F  ; do
+        if [[ "$F" != "" ]]; then
+            DOWNLOADING_ID_LIST+=("$F")
+        fi
+    done < "$listfile"
+}
+
 add_downloaded_id()
 {
     if [[ "$1" != "" ]]; then
@@ -229,5 +239,13 @@ iwara-dl-subscriptions()
     iwara-login
     for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
         iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
+    done
+}
+
+iwara-dl-videoidlistfile()
+{
+    iwara-login
+    for videoid in "${DOWNLOADING_ID_LIST[@]}"; do
+        iwara-dl-by-videoid $videoid
     done
 }
