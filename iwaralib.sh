@@ -162,7 +162,7 @@ iwara-dl-by-videoid()
             echo "Sleep: $sleeptime sec"
             sleep "${sleeptime}s"
 
-            if ! curl --create-dirs -o "${videousername}/$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
+            if ! curl -f --create-dirs -o "${videousername}/$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             else
                 add_downloaded_id "$videoid"
