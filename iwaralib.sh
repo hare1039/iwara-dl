@@ -23,6 +23,9 @@ add_iwara_ignore_list()
 load_downloaded_id_list()
 {
     local listfile="$1"
+    if ! [[ -f "$listfile" ]]; then
+        return;
+    fi
     while read F  ; do
         if [[ "$F" != "" ]]; then
             DOWNLOADED_ID_LIST+=("$F")
@@ -33,6 +36,9 @@ load_downloaded_id_list()
 load_downloading_id_list()
 {
     local listfile="$1"
+    if ! [[ -f "$listfile" ]]; then
+        return;
+    fi
     while read F  ; do
         if [[ "$F" != "" ]]; then
             DOWNLOADING_ID_LIST+=("$F")
@@ -129,10 +135,14 @@ iwara-dl-by-videoid()
     fi
     local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4")
 
-    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_userid(html);")
-    local tmp="${ids}"
-    tmp=$(echo -n "$tmp" | nkf --url-input)
-    local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}")
+    if [[ "$DIRECT_DL" == "TRUE" ]]; then
+        local videousername=".";
+    else
+        IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_userid(html);")
+        local tmp="${ids}"
+        tmp=$(echo -n "$tmp" | nkf --url-input)
+        local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}")
+    fi
 
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echo "Skip: $filename exist."

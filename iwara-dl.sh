@@ -28,6 +28,7 @@ optional arguments:
   -h       show this help message and exit
   -u [U]   username
   -p [P]   password
+  -j       just direct download the video. DOES NOT CREATE EXTRA FOLDER
   -r       try resume download
   -f       do not retry on failed download
   -t       treat input url as usernames
@@ -39,7 +40,7 @@ optional arguments:
   -i [n]   add a name to iwara ignore list and delete the file
   -F [M]   Download videos of people you are following. M:MaxPage
   -l [f]   Download using the VideoID in the [F] VideoID List file.
-           -F/-l options need username/password because login. 
+           -F/-l options need username/password because login.
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
@@ -48,7 +49,7 @@ extra:
 EOF
 }
 
-while getopts "tu:p:csrhi:fdnF:l:" argv; do
+while getopts "tu:p:csrhi:jfdnF:l:" argv; do
     case $argv in
         t)
             PARSE_AS="username"
@@ -61,6 +62,9 @@ while getopts "tu:p:csrhi:fdnF:l:" argv; do
             ;;
         c)
             CDUSER="TRUE"
+            ;;
+        j)
+            DIRECT_DL="TRUE"
             ;;
         s)
             export SHALLOW_UPDATE="TRUE"
@@ -127,8 +131,10 @@ elif ! (( $(calc-argc "${args[@]}") )); then
     exit 0;
 fi
 
-mkdir -p dl
-cd dl
+if [[ "$DIRECT_DL" != "TRUE" ]]; then
+    mkdir -p dl;
+    cd dl;
+fi
 
 load_downloaded_id_list ".iwara_downloaded"
 
