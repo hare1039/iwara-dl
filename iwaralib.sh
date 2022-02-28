@@ -170,7 +170,7 @@ iwara-dl-by-videoid()
 
             local sleeptime=$(shuf -i 8-13 -n 1)
             echo "Sleep: $sleeptime sec"
-            sleep "${sleeptime}s"
+            sleep "${sleeptime}s" 2>/dev/null;
 
             if ! curl -f --create-dirs -o "${videousername}/$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
