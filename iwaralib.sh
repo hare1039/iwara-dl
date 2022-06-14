@@ -49,7 +49,9 @@ load_downloading_id_list()
 add_downloaded_id()
 {
     if [[ "$1" != "" ]]; then
-        echo "$1" >> .iwara_downloaded
+        if [[ "$ENABLE_UPDATER_V2" == "TRUE" ]]; then
+            echo "$1" >> .iwara_downloaded;
+        fi
         DOWNLOADED_ID_LIST+=("$1")
     fi
 }
@@ -108,6 +110,7 @@ get-html-from-url()
 iwara-dl-by-videoid()
 {
     local videoid=$1
+
     if [[ "$videoid" == "" ]]; then
         echox 'Hey, I got a empty videoid!'
         return
@@ -172,7 +175,13 @@ iwara-dl-by-videoid()
             echo "Sleep: $sleeptime sec"
             sleep "${sleeptime}s" 2>/dev/null;
 
-            if ! curl -f --create-dirs -o "${videousername}/$filename" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
+            if [[ "$ENABLE_UPDATER_V2" == "TRUE" ]]; then
+                local finalfilename="${videousername}/$filename";
+            else
+                local finalfilename="$filename";
+            fi
+
+            if ! curl -f --create-dirs -o "${finalfilename}" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             else
                 add_downloaded_id "$videoid"

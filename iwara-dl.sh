@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+#set -x
+
 if [ "$(uname)" == "Darwin" ]; then
     SCRIPT=$(greadlink -f "$0");
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
@@ -25,22 +27,24 @@ positional arguments:
   url
 
 optional arguments:
-  -h       show this help message and exit
-  -u [U]   username
-  -p [P]   password
-  -j       just direct download the video. DOES NOT CREATE EXTRA FOLDER
-  -r       try resume download
-  -f       do not retry on failed download
-  -t       treat input url as usernames
-  -c       cd to each username folder. Used only when specify -t
-  -s       makes shallow update: quiet mode and only download users first page
-  -d       generate list of names from current folder and try to update them all
-           implies -t -c -s
-  -n       output downloaded file name only(hides curl download bar)
-  -i [n]   add a name to iwara ignore list and delete the file
-  -F [M]   Download videos of people you are following. M:MaxPage
-  -l [f]   Download using the VideoID in the [F] VideoID List file.
-           -F/-l options need username/password because login.
+  -h --help                 show this help message and exit
+  --username [U]            username
+  --userpass [P]            password
+  --load-ignore-list [File] load the list in file that should not download
+  -r --resume               try resume download
+  --retry [count]           Max time to retry the download fail
+  --user                    treat input url as usernames
+  --quiet-mode              quiet mode
+  --name-only               output downloaded file name only(hides curl download bar)
+
+  --shallow-update          only download users first page
+  --updater-v1              cd to each username folder; update each folder;
+  --updater-v2              create ./dl/ folder and update;
+
+  --rm [File]               add a name to iwara ignore list and delete the file
+
+  --follow  [M]             Download videos of people you are following. M:MaxPage
+  --dl-list [f]             Download using the VideoID in the [F] VideoID List file.
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
@@ -49,70 +53,79 @@ extra:
 EOF
 }
 
-while getopts "tu:p:csrhi:jfdnF:l:" argv; do
-    case $argv in
-        t)
-            PARSE_AS="username"
-            ;;
-        u)
-            export IWARA_USER="${OPTARG}"
-            ;;
-        p)
-            export IWARA_PASS="${OPTARG}"
-            ;;
-        c)
-            CDUSER="TRUE"
-            ;;
-        j)
-            DIRECT_DL="TRUE"
-            ;;
-        s)
-            export SHALLOW_UPDATE="TRUE"
-            ;;
-        r)
-            export RESUME_DL="TRUE"
-            export OPT_SET_RESUME_DL="TRUE"
-            ;;
-        f)
-            export IWARA_RETRY="FALSE"
-            ;;
-        d)
-            PARSE_AS="username"
-            CDUSER="TRUE"
-            export SHALLOW_UPDATE="TRUE"
+PARSE_AS="";
 
+while true; do
+    case "$1" in
+        -h | --help ) usage; exit 01 ;;
+        --rm )
+            IGN_NAME="$2";
+            echo "$IGN_NAME" >> .iwara_ignore;
+            rm -v *"$IGN_NAME"*;
+            exit 0; ;;
+
+        --username ) IWARA_USER="$2"; shift 2; ;;
+        --userpass ) IWARA_PASS="$2"; shift 2; ;;
+        --load-ignore-list )
+            add_iwara_ignore_list "$2";
+            shift 2; ;;
+
+        --retry )
+            sd;
+            shift; ;;
+
+        --user )
+            ;;
+
+        --quiet-mode )
+            export IWARA_QUIET="TRUE";
+            shift; ;;
+
+        --name-only )
+            export PRINT_NAME_ONLY="--silent";
+            shift; ;;
+
+        -r | --resume )
+            export RESUME_DL="TRUE";
+            export OPT_SET_RESUME_DL="TRUE";
+            shift; ;;
+
+        --updater-v1 )
+            export CDUSER="TRUE";
+            export SHALLOW_UPDATE="TRUE";
+            export PARSE_AS="username";
             update_list=()
             for d in */ ; do update_list+=("${d::-1}"); done
-            ;;
-        n)
-            export PRINT_NAME_ONLY="--silent"
-            export IWARA_QUIET="TRUE"
-            ;;
-        i)
-            IGN_NAME="${OPTARG}"
-            echo "$IGN_NAME" >> .iwara_ignore
-            cd dl
-            rm -v *"$IGN_NAME"*
-            exit
-            ;;
-        F)
-            PARSE_AS="following"
-            export FOLLOWING_MAXPAGE="${OPTARG}"
-            ;;
-        l)
-            PARSE_AS="videoidListfile"
-            export VIDEO_ID_LIST_FILE="${OPTARG}"
-            ;;
-        h | *)
-            usage
-            exit
-            ;;
+
+            shift; ;;
+
+        --updater-v2 )
+            export ENABLE_UPDATER_V2="TRUE";
+            mkdir -p dl;
+            cd dl;
+
+            shift; ;;
+
+        --follow )
+            export ENABLE_UPDATER_V2="TRUE";
+            shift 2; ;;
+
+        --dl-list )
+            export PARSE_AS="videoidListfile";
+            export ENABLE_UPDATER_V2="TRUE";
+            export VIDEO_ID_LIST_FILE="$2";
+            load_downloading_id_list $VIDEO_ID_LIST_FILE;
+            shift; ;;
+
+        -- ) shift; break ;;
+        * ) break ;;
     esac
 done
-shift $((OPTIND-1))
 
 args=("$@")
-for u in "${update_list[@]}"; do args+=("$u"); done
+for u in "${update_list[@]}"; do
+    args+=("$u");
+done
 
 if [[ "${PARSE_AS}" == "following" ]]; then
     expr "$FOLLOWING_MAXPAGE" + 1 >&/dev/null
@@ -129,11 +142,6 @@ elif [[ "${PARSE_AS}" == "videoidListfile" ]]; then
 elif ! (( $(calc-argc "${args[@]}") )); then
     echo "Missing [urls/ids]";
     exit 0;
-fi
-
-if [[ "$DIRECT_DL" != "TRUE" ]]; then
-    mkdir -p dl;
-    cd dl;
 fi
 
 load_downloaded_id_list ".iwara_downloaded"
