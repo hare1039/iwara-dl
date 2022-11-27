@@ -143,8 +143,13 @@ iwara-dl-by-videoid()
     else
         IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_userid(html);")
         local tmp="${ids}"
-        tmp=$(echo -n "$tmp" | nkf --url-input)
-        local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}")
+        if command -v nkf &> /dev/null; then
+            tmp=$(echo -n "$tmp" | nkf --url-input);
+        else
+            tmp=$(echo -n "$tmp");
+        fi
+
+        local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}");
     fi
 
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
@@ -171,9 +176,11 @@ iwara-dl-by-videoid()
             echo "DL: $filename"
             echo "User: $videousername"
 
-            local sleeptime=$(shuf -i 8-13 -n 1)
-            echo "Sleep: $sleeptime sec"
-            sleep "${sleeptime}s" 2>/dev/null;
+            if [[ -n "$IWARA_DOWNLOADED" ]]; then
+                local sleeptime=$(shuf -i 8-13 -n 1)
+                echo "Sleep: $sleeptime sec"
+                sleep "${sleeptime}s" 2>/dev/null;
+            fi
 
             if [[ "$ENABLE_UPDATER_V2" == "TRUE" ]]; then
                 local finalfilename="${videousername}/$filename";
@@ -181,6 +188,7 @@ iwara-dl-by-videoid()
                 local finalfilename="$filename";
             fi
 
+            IWARA_DOWNLOADED="TRUE";
             if ! curl -f --create-dirs -o "${finalfilename}" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             else
