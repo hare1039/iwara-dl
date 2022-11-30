@@ -10,7 +10,7 @@ calc-argc()
     echo "$argv_count"
 }
 
-add_iwara_ignore_list()
+add-iwara-ignore-list()
 {
     local listfile="$1"
     while read F  ; do
@@ -20,7 +20,7 @@ add_iwara_ignore_list()
     done < "$listfile"
 }
 
-load_downloaded_id_list()
+load-downloaded-id-list()
 {
     local listfile="$1"
     if ! [[ -f "$listfile" ]]; then
@@ -33,7 +33,7 @@ load_downloaded_id_list()
     done < "$listfile"
 }
 
-load_downloading_id_list()
+load-downloading-id-list()
 {
     local listfile="$1"
     if ! [[ -f "$listfile" ]]; then
@@ -46,7 +46,7 @@ load_downloading_id_list()
     done < "$listfile"
 }
 
-add_downloaded_id()
+add-downloaded-id()
 {
     if [[ "$1" != "" ]]; then
         if [[ "$ENABLE_UPDATER_V2" == "TRUE" ]]; then
@@ -56,7 +56,7 @@ add_downloaded_id()
     fi
 }
 
-is_in_iwara_ignore_list()
+is-in-iwara-ignore-list()
 {
     local filename="$1"
     for ignorename in "${IWARA_IGNORE[@]}"; do
@@ -68,7 +68,7 @@ is_in_iwara_ignore_list()
     false
 }
 
-is_downloaded()
+is-downloaded()
 {
     local downloadid="$1"
     for downloaded_id in "${DOWNLOADED_ID_LIST[@]}"; do
@@ -116,7 +116,7 @@ iwara-dl-by-videoid()
         return
     fi
 
-    if is_downloaded "$videoid"; then
+    if is-downloaded "$videoid"; then
         echox "Skip: $videoid is in downloaded list."
         return
     fi
@@ -126,7 +126,7 @@ iwara-dl-by-videoid()
 
     if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
         youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
-        add_downloaded_id "$videoid"
+        add-downloaded-id "$videoid"
         return
     fi
 
@@ -154,17 +154,17 @@ iwara-dl-by-videoid()
 
     if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echo "Skip: $filename exist."
-        add_downloaded_id "$videoid"
+        add-downloaded-id "$videoid"
         return
     fi
     if [[ -f "$videousername/$filename" ]] && ! [[ "$RESUME_DL" ]]; then
         echox "Skip: $videousername/$filename exist."
-        add_downloaded_id "$videoid"
+        add-downloaded-id "$videoid"
         return
     fi
-    if is_in_iwara_ignore_list "$filename"; then
+    if is-in-iwara-ignore-list "$filename"; then
         echox "Skip: $filename is in ignore list."
-        add_downloaded_id "$videoid"
+        add-downloaded-id "$videoid"
         return
     fi
 
@@ -189,10 +189,10 @@ iwara-dl-by-videoid()
             fi
 
             IWARA_DOWNLOADED="TRUE";
-            if ! curl -f --create-dirs -o "${finalfilename}" ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
+            if ! curl -f --create-dirs -o "${finalfilename}" $CURL_ACCEPT_INSECURE_CONNECTION ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
                 DOWNLOAD_FAILED_LIST+=("${videoid}")
             else
-                add_downloaded_id "$videoid"
+                add-downloaded-id "$videoid";
             fi
         fi
     done

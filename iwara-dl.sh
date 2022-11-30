@@ -35,6 +35,7 @@ optional arguments:
   --retry [count]           Max time to retry the download fail
   --user                    treat input url as usernames
   --quiet-mode              quiet mode
+  --accept-insecure         accept insecure https connection
   --name-only               output downloaded file name only(hides curl download bar)
 
   --shallow-update          only download users first page
@@ -71,14 +72,19 @@ while true; do
             shift 2; ;;
 
         --retry )
-            sd;
+            export IWARA_RETRY="TRUE";
             shift; ;;
 
         --user )
+            export PARSE_AS="username";
             ;;
 
         --quiet-mode )
             export IWARA_QUIET="TRUE";
+            shift; ;;
+
+        --accept-insecure )
+            export CURL_ACCEPT_INSECURE_CONNECTION="--insecure";
             shift; ;;
 
         --name-only )
@@ -144,19 +150,19 @@ elif ! (( $(calc-argc "${args[@]}") )); then
     exit 0;
 fi
 
-load_downloaded_id_list ".iwara_downloaded"
+load-downloaded-id-list ".iwara_downloaded"
 
 if [[ "${PARSE_AS}" == "username" ]]; then
     for user in "${args[@]}"; do
         echo "[[$user]]"
         if [[ -f ".iwara_ignore" ]]; then
-            add_iwara_ignore_list ".iwara_ignore"
+            add-iwara-ignore-list ".iwara_ignore"
         fi
 
         if [[ "$CDUSER" ]]; then
             cd "$user" || { echo "Skip user [$user]"; continue; }
             if [[ -f ".iwara_ignore" ]]; then
-                add_iwara_ignore_list ".iwara_ignore"
+                add-iwara-ignore-list ".iwara_ignore"
             fi
             iwara-dl-update-user "$user"
             iwara-dl-retry-dl
