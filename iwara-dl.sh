@@ -68,7 +68,7 @@ while true; do
         --username ) IWARA_USER="$2"; shift 2; ;;
         --userpass ) IWARA_PASS="$2"; shift 2; ;;
         --load-ignore-list )
-            add_iwara_ignore_list "$2";
+            add-iwara-ignore-list "$2";
             shift 2; ;;
 
         --retry )
