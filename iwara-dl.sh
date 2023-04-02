@@ -178,7 +178,7 @@ elif [[ "${PARSE_AS}" == "videoidListfile" ]]; then
     iwara-dl-videoidlistfile
 else
     for url in "${args[@]}"; do
-        if [[ "$url" == *"iwara.tv/videos"* ]]; then
+        if [[ "$url" == *"iwara.tv/video"* ]]; then
             iwara-dl-by-videoid $(url-get-id "$url")
         elif [[ "$url" == *"iwara.tv/users"* ]] ||
              [[ "$url" == *"iwara.tv/playlist"* ]]; then
