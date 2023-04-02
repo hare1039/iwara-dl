@@ -6,6 +6,10 @@ For `iwara-friend` instructions, please go [here](https://github.com/hare1039/iw
 
 Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl`
 
+# *Due to Recent Iwara website update, This repo can only download public videos for now.*
+All the internal API changed, so I need to rewrite all other features like login, download users, download playlist.
+Please check later for the updated features.
+
 # Dependency
 ```
 bash
