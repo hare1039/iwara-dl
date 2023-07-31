@@ -85,13 +85,13 @@ iwara-login()
     if ! [[ "${IWARA_SESSION}" ]]; then
         echox "Logging in..."
 
-        HTML=$(curl "https://ecchi.iwara.tv/user/login" --silent)
-        local antibot=$(echo "$HTML" | python3 -c "$PYCHECK page.login_key(html);")
-        IWARA_SESSION=$(curl 'https://ecchi.iwara.tv/user/login' -v \
-                       --data "name=${IWARA_USER}&pass=${IWARA_PASS}&form_build_id=form-jacky&form_id=user_login&antibot_key=${antibot}&op=%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3" 2>&1 \
-                       | grep 'set-cookie' | awk '{print $3}' | sed 's/;//g')
-        IWARA_SESSION="-HCookie:${IWARA_SESSION}"
-        echox "Cookie:'$IWARA_SESSION'"
+        HTML=$(curl 'https://api.iwara.tv/user/login' \
+                    -X POST -H 'Content-Type: application/json' \
+                    --data-raw "{\"email\":\"${IWARA_USER}\",\"password\":\"${IWARA_PASS}\"}");
+
+        token=$(echo $HTML | jq --raw-output '.token')
+        IWARA_SESSION="--oauth2-bearer $token";
+        echox "token:'$IWARA_SESSION'"
     fi
 }
 
@@ -125,7 +125,14 @@ iwara-dl-by-videoid()
     local fileapi=$(echo $video_stat | jq --raw-output ".fileUrl");
 
     if [[ "$fileapi" == "null" ]]; then
-        echo "Error: no such videoid ($videoid). Maybe due to user login (WIP). Reply from api: $video_stat"
+        local message=$(echo $video_stat | jq --raw-output ".message")
+        if [[ "$message" == "errors.privateVideo" ]] && [[ "$IWARA_SESSION" == "" ]]; then
+            echo "looks like private video. try login ";
+            iwara-login;
+            iwara-dl-by-videoid $videoid;
+        else
+            echo "Error: no such videoid ($videoid). Reply from api: $video_stat"
+        fi
         return;
     fi
     # https://files.iwara.tv/file/b1764278-fe2e-4795-9e67-1fc85571ca78?expires=1680461922619&hash=d54eb4ff8b98f508557cec9b890f4a732de83b90ec4de6aa2f27abf300d01109
