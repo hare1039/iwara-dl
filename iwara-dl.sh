@@ -6,6 +6,8 @@ if [ "$(uname)" == "Darwin" ]; then
     SCRIPT=$(greadlink -f "$0");
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     SCRIPT=$(readlink -f "$0");
+else
+    SCRIPT=$(readlink -f "$0");
 fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
