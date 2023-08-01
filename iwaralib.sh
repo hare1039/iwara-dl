@@ -186,7 +186,7 @@ iwara-dl-user()
     local username="$1";
 
     #https://api.iwara.tv/videos?page=0&sort=date&user=318e6b2c-6f55-4672-916b-f6227e429442
-    local userid=$(curl --silent "https://api.iwara.tv/profile/$username" | jq --raw-output ".user.id");
+    local userid=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/profile/$username" | jq --raw-output ".user.id");
 
     if [[ "$2" ]]; then
         max_page=$2
@@ -195,9 +195,13 @@ iwara-dl-user()
     fi
 
     for i in $(eval echo "{0..$max_page}"); do
-        local json_array=$(curl --silent "https://api.iwara.tv/videos?page=$i&sort=date&user=$userid");
+        local json_array=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/videos?page=$i&sort=date&user=$userid");
 
         local count=$(echo $json_array | jq '.results | length');
+
+        if [[ "$count" == "0" ]]; then
+            break;
+        fi
 
         for ((i=0; i<$count; i++)); do
             local id=$(echo $json_array | jq -r ".results[$i].id");
@@ -244,19 +248,6 @@ iwara-dl-retry-dl()
     fi
 }
 
-
-# unfixed functions
-iwara-dl-subscriptions()
-{
-    echo "Sorry. This function (iwara-dl-subscriptions) is still in the process of reimplementing because of the new website update";
-    return ;
-
-    iwara-login
-    for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
-        iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
-    done
-}
-
 iwara-dl-videoidlistfile()
 {
     echo "Sorry. This function (iwara-dl-videoidlistfile) is still in the process of reimplementing because of the new website update";
@@ -268,16 +259,47 @@ iwara-dl-videoidlistfile()
     done
 }
 
-iwara-dl-by-url()
+iwara-dl-by-playlist()
 {
-    echo "Sorry. This function (iwara-dl-by-url) is still in the process of reimplementing because of the new website update";
+    #https://www.iwara.tv/playlist/649ed6ff-a152-4957-849b-6e907c4c94c4
+    local playlist_id=$1
+
+    if [[ "$playlist_id" == "" ]]; then
+        echo "empty playlist id?"
+    fi
+
+    if [[ "$2" ]]; then
+        max_page=$2
+    else
+        max_page=100
+    fi
+
+    for i in $(eval echo "{0..$max_page}"); do
+        local json_array=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/playlist/${playlist_id}?page=$i");
+
+        local count=$(echo $json_array | jq '.results | length');
+
+        if [[ "$count" == "0" ]]; then
+            break;
+        fi
+
+        for ((i=0; i<$count; i++)); do
+            local id=$(echo $json_array | jq -r ".results[$i].id");
+            iwara-dl-by-videoid "$id";
+            #echo $id;
+        done
+    done
+}
+
+# unfixed functions
+iwara-dl-subscriptions()
+{
+    echo "Sorry. This function (iwara-dl-subscriptions) is still in the process of reimplementing because of the new website update";
     return ;
-    local URL=$1
-    get-html-from-url "${URL}"
-    local html=$HTML
-    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_videoid(html);")
-    for id in "${ids[@]}"; do
-        iwara-dl-by-videoid "${id}"
+
+    iwara-login
+    for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
+        iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
     done
 }
 

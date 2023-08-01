@@ -37,6 +37,7 @@ optional arguments:
   --retry [count]           Max time to retry the download fail
   --user                    treat input url as usernames
   --quiet-mode              quiet mode
+  --login                   log in upfront
   --accept-insecure         accept insecure https connection
   --name-only               output downloaded file name only(hides curl download bar)
 
@@ -72,6 +73,10 @@ while true; do
         --load-ignore-list )
             add-iwara-ignore-list "$2";
             shift 2; ;;
+
+        --login )
+            iwara-login;
+            shift; ;;
 
         --retry )
             export IWARA_RETRY="TRUE";
@@ -191,9 +196,8 @@ else
     for url in "${args[@]}"; do
         if [[ "$url" == *"iwara.tv/video"* ]]; then
             iwara-dl-by-videoid $(url-get-id "$url")
-        elif [[ "$url" == *"iwara.tv/users"* ]] ||
-             [[ "$url" == *"iwara.tv/playlist"* ]]; then
-            iwara-dl-by-url "$url"
+        elif [[ "$url" == *"iwara.tv/playlist"* ]]; then
+            iwara-dl-by-playlist $(url-get-id "$url")
         else
             iwara-dl-by-videoid "$url"
         fi
