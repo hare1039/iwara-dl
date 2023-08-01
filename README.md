@@ -1,13 +1,21 @@
 # iwara-dl
 
-This program downloads `ecchi.iwara.tv` videos
+This program downloads `iwara.tv` videos
 
-For `iwara-friend` instructions, please go [here](https://github.com/hare1039/iwara-dl/blob/master/README-friend.md)
 
 Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl`
 
-# *Due to Recent Iwara website update, This repo can only download public videos for now.*
-All the internal API changed, so I need to rewrite all other features like login, download users, download playlist.
+# *Due to the Recent Iwara website update, This repo can support the following function*
+
+Update on 07/31/2023
+To-do list:
+- [x] Download by id
+- [x] Login
+- [x] Download by user
+- [x] Updater V1
+- [ ] Updater V2
+- [ ] Download by playlist
+- [ ] Download by subscription
 Please check later for the updated features.
 
 # Dependency
@@ -15,7 +23,6 @@ Please check later for the updated features.
 bash
 curl
 jq
-python3 with BeautifulSoup
 nkf
 ```
 
