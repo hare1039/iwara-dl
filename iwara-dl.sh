@@ -79,10 +79,14 @@ while true; do
 
         --user )
             export PARSE_AS="username";
-            ;;
+            shift; ;;
 
         --quiet-mode )
             export IWARA_QUIET="TRUE";
+            shift; ;;
+
+        --shallow-update )
+            export SHALLOW_UPDATE="TRUE";
             shift; ;;
 
         --accept-insecure )
@@ -166,8 +170,13 @@ if [[ "${PARSE_AS}" == "username" ]]; then
             if [[ -f ".iwara_ignore" ]]; then
                 add-iwara-ignore-list ".iwara_ignore"
             fi
-            iwara-dl-update-user "$user"
-            iwara-dl-retry-dl
+
+            if [[ "$SHALLOW_UPDATE" == "TRUE" ]]; then
+                iwara-dl-update-user "$user" "0";
+            else
+                iwara-dl-update-user "$user";
+            fi
+            iwara-dl-retry-dl;
             cd "$OLDPWD" || exit 1
         else
             iwara-dl-update-user "$user"

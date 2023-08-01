@@ -95,18 +95,6 @@ iwara-login()
     fi
 }
 
-get-html-from-url()
-{
-    local URL=$1
-    HTML=$(curl ${IWARA_SESSION} "$URL" --silent)
-
-    if [[ "${IWARA_USER}" ]] && echo "$HTML" | python3 -c "$PYCHECK page.is_private(html);"; then
-        echox "${videoid} looks like private video."
-        iwara-login
-        HTML=$(curl ${IWARA_SESSION} "https://ecchi.iwara.tv/videos/${videoid}" --silent)
-    fi
-}
-
 iwara-dl-by-videoid()
 {
     local videoid=$1
@@ -125,11 +113,19 @@ iwara-dl-by-videoid()
     local fileapi=$(echo $video_stat | jq --raw-output ".fileUrl");
 
     if [[ "$fileapi" == "null" ]]; then
-        local message=$(echo $video_stat | jq --raw-output ".message")
+        local message=$(echo $video_stat | jq --raw-output ".message");
+        local body=$(echo $video_stat | jq --raw-output ".body");
+        local embedUrl=$(echo $video_stat | jq --raw-output ".embedUrl");
+
         if [[ "$message" == "errors.privateVideo" ]] && [[ "$IWARA_SESSION" == "" ]]; then
             echo "looks like private video. try login ";
             iwara-login;
             iwara-dl-by-videoid $videoid;
+        elif [[ "$body" == *"youtu.be"* ]]  || \
+             [[ "$body" == *"youtube"*  ]]  || \
+             [[ "$embedUrl" == *"youtu.be"* ]] || \
+             [[ "$embedUrl" == *"youtube"*  ]]; then
+            echo "Got a youtube link: $body. Skip. Welcome to contribute to implement this";
         else
             echo "Error: no such videoid ($videoid). Reply from api: $video_stat"
         fi
@@ -148,8 +144,8 @@ iwara-dl-by-videoid()
         if [[ $(_jq ".name") == "Source" ]]; then
 
             local title=$(echo $video_stat | jq --raw-output ".title");
-            local filename="$title-$videoid.mp4";
             local videousername="$(echo $video_stat | jq --raw-output '.user.username')"
+            local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4");
 
             echo "DL: $filename"
             echo "User: $videousername"
@@ -177,7 +173,116 @@ iwara-dl-by-videoid()
             fi
         fi
     done
+}
 
+url-get-id()
+{
+    IFS='/' read -ra id <<< "$1"
+    echo "${id[-1]}"
+}
+
+iwara-dl-user()
+{
+    local username="$1";
+
+    #https://api.iwara.tv/videos?page=0&sort=date&user=318e6b2c-6f55-4672-916b-f6227e429442
+    local userid=$(curl --silent "https://api.iwara.tv/profile/$username" | jq --raw-output ".user.id");
+
+    if [[ "$2" ]]; then
+        max_page=$2
+    else
+        max_page=100
+    fi
+
+    for i in $(eval echo "{0..$max_page}"); do
+        local json_array=$(curl --silent "https://api.iwara.tv/videos?page=$i&sort=date&user=$userid");
+
+        local count=$(echo $json_array | jq '.results | length');
+
+        for ((i=0; i<$count; i++)); do
+            local id=$(echo $json_array | jq -r ".results[$i].id");
+            iwara-dl-by-videoid "$id";
+        done
+    done
+}
+
+iwara-dl-update-user()
+{
+    user=$1;
+
+    if [[ "$user" == "" ]]; then
+        echo "no user?"
+        return
+    fi
+
+    if [[ "$SHALLOW_UPDATE" ]]; then
+        IWARA_QUIET="TRUE"
+        iwara-dl-user "$user" "0" # set $2(max_page) == 0
+    else
+        iwara-dl-user "$user"
+    fi
+}
+
+iwara-dl-retry-dl()
+{
+    if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
+        echo "Download failed on these videoid:"
+        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+            echo "$id"
+        done
+        if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
+            echo "Try resuming..."
+            export RESUME_DL="TRUE"
+            for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+                iwara-dl-by-videoid "$id"
+            done
+            if ! [[ "$OPT_SET_RESUME_DL" ]]; then
+                unset RESUME_DL
+            fi
+            DOWNLOAD_FAILED_LIST=()
+        fi
+    fi
+}
+
+
+# unfixed functions
+iwara-dl-subscriptions()
+{
+    echo "Sorry. This function (iwara-dl-subscriptions) is still in the process of reimplementing because of the new website update";
+    return ;
+
+    iwara-login
+    for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
+        iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
+    done
+}
+
+iwara-dl-videoidlistfile()
+{
+    echo "Sorry. This function (iwara-dl-videoidlistfile) is still in the process of reimplementing because of the new website update";
+    return ;
+
+    iwara-login
+    for videoid in "${DOWNLOADING_ID_LIST[@]}"; do
+        iwara-dl-by-videoid $videoid
+    done
+}
+
+iwara-dl-by-url()
+{
+    echo "Sorry. This function (iwara-dl-by-url) is still in the process of reimplementing because of the new website update";
+    return ;
+    local URL=$1
+    get-html-from-url "${URL}"
+    local html=$HTML
+    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_videoid(html);")
+    for id in "${ids[@]}"; do
+        iwara-dl-by-videoid "${id}"
+    done
+}
+
+iwara-old-dl()
+{
 #    get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
 #    local html="$HTML"
 #
@@ -253,95 +358,5 @@ iwara-dl-by-videoid()
 #            fi
 #        fi
 #    done
-}
-
-url-get-id()
-{
-    IFS='/' read -ra id <<< "$1"
-    echo "${id[-1]}"
-}
-
-iwara-dl-by-url()
-{
-    echo "Sorry. This function (iwara-dl-by-url) is still in the process of reimplementing because of the new website update";
-    return ;
-    local URL=$1
-    get-html-from-url "${URL}"
-    local html=$HTML
-    IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_videoid(html);")
-    for id in "${ids[@]}"; do
-        iwara-dl-by-videoid "${id}"
-    done
-}
-
-iwara-dl-user()
-{
-    echo "Sorry. This function (iwara-dl-user) is still in the process of reimplementing because of the new website update";
-    return ;
-    local username="$1"
-    get-html-from-url "https://ecchi.iwara.tv/users/${username}/videos"
-    local html=$HTML
-    local max_page=$(echo "$html" | python3 -c "$PYCHECK page.find_max_user_video_page(html);")
-    if [[ "$2" ]]; then
-        max_page=$2
-    fi
-    for i in $(eval echo "{0..$max_page}"); do
-        iwara-dl-by-url "https://ecchi.iwara.tv/users/${username}/videos?page=${i}"
-    done
-}
-
-iwara-dl-update-user()
-{
-    echo "Sorry. This function (iwara-dl-update-user) is still in the process of reimplementing because of the new website update";
-    return ;
-    local user=$(printf "%s" "$1" | python3 -c "$PYCHECK page.encode(html);")
-    if [[ "$SHALLOW_UPDATE" ]]; then
-        IWARA_QUIET="TRUE"
-        iwara-dl-user "$user" "0" # set $2(max_page) == 0
-    else
-        iwara-dl-user "$user"
-    fi
-}
-
-iwara-dl-retry-dl()
-{
-    if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
-        echo "Download failed on these videoid:"
-        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-            echo "$id"
-        done
-        if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
-            echo "Try resuming..."
-            export RESUME_DL="TRUE"
-            for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-                iwara-dl-by-videoid "$id"
-            done
-            if ! [[ "$OPT_SET_RESUME_DL" ]]; then
-                unset RESUME_DL
-            fi
-            DOWNLOAD_FAILED_LIST=()
-        fi
-    fi
-}
-
-iwara-dl-subscriptions()
-{
-    echo "Sorry. This function (iwara-dl-subscriptions) is still in the process of reimplementing because of the new website update";
-    return ;
-
-    iwara-login
-    for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
-        iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
-    done
-}
-
-iwara-dl-videoidlistfile()
-{
-    echo "Sorry. This function (iwara-dl-videoidlistfile) is still in the process of reimplementing because of the new website update";
-    return ;
-
-    iwara-login
-    for videoid in "${DOWNLOADING_ID_LIST[@]}"; do
-        iwara-dl-by-videoid $videoid
-    done
+    echo should not call this function;
 }
