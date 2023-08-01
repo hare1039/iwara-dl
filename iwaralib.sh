@@ -250,10 +250,6 @@ iwara-dl-retry-dl()
 
 iwara-dl-videoidlistfile()
 {
-    echo "Sorry. This function (iwara-dl-videoidlistfile) is still in the process of reimplementing because of the new website update";
-    return ;
-
-    iwara-login
     for videoid in "${DOWNLOADING_ID_LIST[@]}"; do
         iwara-dl-by-videoid $videoid
     done
