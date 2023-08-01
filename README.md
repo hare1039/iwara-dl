@@ -8,13 +8,14 @@ Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow
 # *Due to the Recent Iwara website update, This repo can support the following function*
 
 Update on 07/31/2023
+
 To-do list:
 - [x] Download by id
 - [x] Login
 - [x] Download by user
 - [x] Updater V1
+- [x] Download by playlist
 - [ ] Updater V2
-- [ ] Download by playlist
 - [ ] Download by subscription
 Please check later for the updated features.
 
@@ -34,26 +35,30 @@ positional arguments:
   url
 
 optional arguments:
-  -h       show this help message and exit
-  -u [U]   username
-  -p [P]   password
-  -r       try resume download
-  -f       do not retry on failed download
-  -t       treat input url as usernames
-  -c       cd to each username folder. Used only when specify -t
-  -s       makes shallow update: quiet mode and only download users first page
-  -d       generate list of names from current folder and try to update them all
-           implies -t -c -s
-  -n       output downloaded file name only(hides curl download bar)
-  -i [n]   add a name to iwara ignore list and delete the file
-  -F [M]   Download videos of people you are following. M:MaxPage
-  -l [f]   Download using the VideoID in the [F] VideoID List file.
-           -F/-l options need username/password because login. 
+  -h --help                 show this help message and exit
+  --username [U]            username
+  --userpass [P]            password
+  --load-ignore-list [File] load the list in file that should not download
+  -r --resume               try resume download
+  --retry [count]           Max time to retry the download fail
+  --user                    treat input url as usernames
+  --quiet-mode              quiet mode
+  --login                   log in upfront
+  --accept-insecure         accept insecure https connection
+  --name-only               output downloaded file name only(hides curl download bar)
+
+  --shallow-update          only download users first page
+  --updater-v1              cd to each username folder; update each folder;
+  --updater-v2              create ./dl/ folder and update;
+
+  --rm [File]               add a name to iwara ignore list and delete the file
+
+  --follow  [M]             Download videos of people you are following. M:MaxPage
+  --dl-list [f]             Download using the VideoID in the [F] VideoID List file.
 
 extra:
   .iwara_ignore file => newline-saperated list of filenames of skipping download
   dl/.iwara_downloaded file => newline-saperated list of VideoID of skipping download
-
 ```
 
 ```
