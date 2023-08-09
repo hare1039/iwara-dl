@@ -36,6 +36,7 @@ optional arguments:
   -r --resume               try resume download
   --retry [count]           Max time to retry the download fail
   --user                    treat input url as usernames
+  --cduser-dir              cd to each user directory
   --quiet-mode              quiet mode
   --login                   log in upfront
   --accept-insecure         accept insecure https connection
@@ -84,6 +85,11 @@ while true; do
 
         --user )
             export PARSE_AS="username";
+            shift; ;;
+
+        --cduser-dir )
+            export CDUSER="TRUE";
+            export CREATE_USER_DIR="TRUE";
             shift; ;;
 
         --quiet-mode )
@@ -171,6 +177,10 @@ if [[ "${PARSE_AS}" == "username" ]]; then
         fi
 
         if [[ "$CDUSER" ]]; then
+            if [[ "$CREATE_USER_DIR" == "TRUE" ]]; then
+                mkdir -p "$user";
+            fi
+
             cd "$user" || { echo "Skip user [$user]"; continue; }
             if [[ -f ".iwara_ignore" ]]; then
                 add-iwara-ignore-list ".iwara_ignore"
