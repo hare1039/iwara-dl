@@ -234,7 +234,7 @@ iwara-dl-retry-dl()
         for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
             echo "$id"
         done
-        if [[ "$IWARA_RETRY" != "FALSE" ]] ; then
+        if [[ "$IWARA_RETRY" == "TRUE" ]] ; then
             echo "Try resuming..."
             export RESUME_DL="TRUE"
             for id in "${DOWNLOAD_FAILED_LIST[@]}"; do

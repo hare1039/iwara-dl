@@ -34,7 +34,7 @@ optional arguments:
   --userpass [P]            password
   --load-ignore-list [File] load the list in file that should not download
   -r --resume               try resume download
-  --retry [count]           Max time to retry the download fail
+  --retry                   try to redownload the video if not download completely
   --user                    treat input url as usernames
   --cduser-dir              cd to each user directory
   --quiet-mode              quiet mode
