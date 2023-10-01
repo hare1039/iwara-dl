@@ -2,9 +2,6 @@
 
 This program downloads `iwara.tv` videos
 
-
-Why I rewrite this downloader? I just figure out that `selenium` is toooooo slow and `Requests` or `urllib3` from python3 are so hard to write comparing to `curl`
-
 # *Due to the Recent Iwara website update, This repo can support the following function*
 
 Update on 07/31/2023
