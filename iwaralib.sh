@@ -272,7 +272,6 @@ iwara-dl-by-playlist()
 
     for i in $(eval echo "{0..$max_page}"); do
         local json_array=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/playlist/${playlist_id}?page=$i");
-
         local count=$(echo $json_array | jq '.results | length');
 
         if [[ "$count" == "0" ]]; then
@@ -282,7 +281,6 @@ iwara-dl-by-playlist()
         for ((i=0; i<$count; i++)); do
             local id=$(echo $json_array | jq -r ".results[$i].id");
             iwara-dl-by-videoid "$id";
-            #echo $id;
         done
     done
 }
