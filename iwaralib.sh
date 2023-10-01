@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PYCHECK="import sys; html=sys.stdin.read(); import os; os.chdir('${SCRIPTPATH}'); import iwaralib as page;"
+
 
 echox() { if ! [[ "$IWARA_QUIET" ]]; then echo "$@"; fi }
 
@@ -297,84 +297,4 @@ iwara-dl-subscriptions()
     for i in $(eval echo "{0..${FOLLOWING_MAXPAGE}}"); do
         iwara-dl-by-url "https://ecchi.iwara.tv/subscriptions?page=${i}"
     done
-}
-
-iwara-old-dl()
-{
-#    get-html-from-url "https://ecchi.iwara.tv/videos/${videoid}"
-#    local html="$HTML"
-#
-#    if echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);" > /dev/null; then
-#        youtube-dl $(echo "$html" | python3 -c "$PYCHECK page.is_youtube(html);")
-#        add-downloaded-id "$videoid"
-#        return
-#    fi
-#
-#    local title=$(echo "$html" | python3 -c "$PYCHECK page.parse_title(html);")
-#    if [[ "$title" == "" ]]; then
-#        echox "Skip: title missing at page ${videoid}."
-#        DOWNLOAD_FAILED_LIST+=("${videoid}")
-#        return
-#    fi
-#    local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4")
-#
-#    if [[ "$DIRECT_DL" == "TRUE" ]]; then
-#        local videousername=".";
-#    else
-#        IFS='`' read -ra ids <<< $(echo "$html" | python3 -c "$PYCHECK page.find_userid(html);")
-#        local tmp="${ids}"
-#        if command -v nkf &> /dev/null; then
-#            tmp=$(echo -n "$tmp" | nkf --url-input);
-#        else
-#            tmp=$(echo -n "$tmp");
-#        fi
-#
-#        local videousername=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${tmp}");
-#    fi
-#
-#    if [[ -f "$filename" ]] && ! [[ "$RESUME_DL" ]]; then
-#        echo "Skip: $filename exist."
-#        add-downloaded-id "$videoid"
-#        return
-#    fi
-#    if [[ -f "$videousername/$filename" ]] && ! [[ "$RESUME_DL" ]]; then
-#        echox "Skip: $videousername/$filename exist."
-#        add-downloaded-id "$videoid"
-#        return
-#    fi
-#    if is-in-iwara-ignore-list "$filename"; then
-#        echox "Skip: $filename is in ignore list."
-#        add-downloaded-id "$videoid"
-#        return
-#    fi
-#
-#    for row in $(curl --silent ${IWARA_SESSION} "https://ecchi.iwara.tv/api/video/${videoid}" | jq -r ".[] | @base64"); do
-#        _jq() {
-#            echo ${row} | base64 --decode | jq -r ${1}
-#        }
-#        if [[ $(_jq ".resolution") == "Source" ]]; then
-#            echo "DL: $filename"
-#            echo "User: $videousername"
-#
-#            if [[ -n "$IWARA_DOWNLOADED" ]]; then
-#                local sleeptime=$(shuf -i 8-13 -n 1)
-#                echo "Sleep: $sleeptime sec"
-#                sleep "${sleeptime}s" 2>/dev/null;
-#            fi
-#
-#            if [[ "$ENABLE_UPDATER_V2" == "TRUE" ]]; then
-#                local finalfilename="${videousername}/$filename";
-#            else
-#                local finalfilename="$filename";
-#            fi
-#
-#            IWARA_DOWNLOADED="TRUE";
-#            if ! curl -f --create-dirs -o "${finalfilename}" $CURL_ACCEPT_INSECURE_CONNECTION ${PRINT_NAME_ONLY} -C- ${IWARA_SESSION} "https:$(_jq '.uri')"; then
-#                DOWNLOAD_FAILED_LIST+=("${videoid}")
-#            else
-#                add-downloaded-id "$videoid";
-#            fi
-#        fi
-#    done
-    echo should not call this function;
 }
