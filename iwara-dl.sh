@@ -21,6 +21,7 @@ trap '
   trap - INT # restore default INT handler
   kill -s INT "$$"
 ' INT
+
 usage() {
     cat - <<EOF
 usage: iwara-dl.sh [-u [U]] [-p [P]] [-i [n]] [-rhftcsdn] [-F [M]] [-l [f]] [url [url ...]]
@@ -102,6 +103,10 @@ while true; do
 
         --accept-insecure )
             export CURL_ACCEPT_INSECURE_CONNECTION="--insecure";
+            shift; ;;
+
+        --enable-continue )
+            export ENABLE_CONTINUE="--continue-at -";
             shift; ;;
 
         --name-only )

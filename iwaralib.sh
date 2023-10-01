@@ -163,7 +163,7 @@ iwara-dl-by-videoid()
             fi
 
             IWARA_DOWNLOADED="TRUE";
-            local http_return_code=$(curl -f --create-dirs -o "${finalfilename}" $CURL_ACCEPT_INSECURE_CONNECTION ${PRINT_NAME_ONLY} --continue-at - --write-out "%{http_code}" ${IWARA_SESSION} "https:$(_jq '.src.download')");
+            local http_return_code=$(curl -f --create-dirs -o "${finalfilename}" ${CURL_ACCEPT_INSECURE_CONNECTION} ${PRINT_NAME_ONLY} ${ENABLE_CONTINUE} --write-out "%{http_code}" ${IWARA_SESSION} "https:$(_jq '.src.download')");
 
             if [[ "$http_return_code" == "416" ]] || [[ "$http_return_code" == "200" ]]; then
                 add-downloaded-id "$videoid";
