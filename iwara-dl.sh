@@ -12,10 +12,11 @@ fi
 
 export SCRIPTPATH=$(dirname "$SCRIPT");
 source "$SCRIPTPATH/iwaralib.sh";
-export DOWNLOAD_FAILED_LIST=()
-export IWARA_IGNORE=()
-export DOWNLOADED_ID_LIST=()
-export DOWNLOADING_ID_LIST=()
+export DOWNLOAD_FAILED_LIST=();
+export IWARA_IGNORE=();
+export DOWNLOADED_ID_LIST=();
+export DOWNLOADING_ID_LIST=();
+export ENABLE_CONTINUE="--continue-at -";
 
 trap '
   trap - INT # restore default INT handler
@@ -41,6 +42,7 @@ optional arguments:
   --quiet-mode              quiet mode
   --login                   log in upfront
   --accept-insecure         accept insecure https connection
+  --disable-continue        make all video download from start
   --name-only               output downloaded file name only(hides curl download bar)
 
   --shallow-update          only download users first page
@@ -105,8 +107,8 @@ while true; do
             export CURL_ACCEPT_INSECURE_CONNECTION="--insecure";
             shift; ;;
 
-        --enable-continue )
-            export ENABLE_CONTINUE="--continue-at -";
+        --disable-continue )
+            export ENABLE_CONTINUE="";
             shift; ;;
 
         --name-only )
