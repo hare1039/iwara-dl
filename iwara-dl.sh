@@ -17,6 +17,7 @@ export IWARA_IGNORE=();
 export DOWNLOADED_ID_LIST=();
 export DOWNLOADING_ID_LIST=();
 export ENABLE_CONTINUE="--continue-at -";
+export ENABLE_SLEEP="TRUE"
 
 trap '
   trap - INT # restore default INT handler
@@ -43,6 +44,7 @@ optional arguments:
   --login                   log in upfront
   --accept-insecure         accept insecure https connection
   --disable-continue        make all video download from start
+  --disable-sleep           do not add sleep when download a list of video
   --name-only               output downloaded file name only(hides curl download bar)
 
   --shallow-update          only download users first page
@@ -109,6 +111,10 @@ while true; do
 
         --disable-continue )
             export ENABLE_CONTINUE="";
+            shift; ;;
+
+        --disable-sleep )
+            export ENABLE_SLEEP="FALSE";
             shift; ;;
 
         --name-only )

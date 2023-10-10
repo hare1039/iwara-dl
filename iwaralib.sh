@@ -150,7 +150,7 @@ iwara-dl-by-videoid()
             echo "DL: $filename"
             echo "User: $videousername"
 
-            if [[ -n "$IWARA_DOWNLOADED" ]]; then
+            if [[ "$ENABLE_SLEEP" == "TRUE" ]] && [[ -n "$IWARA_DOWNLOADED" ]]; then
                 local sleeptime=$(shuf -i 8-13 -n 1)
                 echo "Sleep: $sleeptime sec"
                 sleep "${sleeptime}s" 2>/dev/null;
