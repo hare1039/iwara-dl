@@ -38,6 +38,7 @@ optional arguments:
   --load-ignore-list [File] load the list in file that should not download
   -r --retry [Count]        try to redownload the video at most [Count] times if not download completely
   --user                    treat input url as usernames
+  --max-page [Maxpage]      only download users' videos from page 1 to [Maxpage]
   --cduser-dir              cd to each user directory
   --quiet-mode              quiet mode
   --login                   log in upfront
@@ -92,6 +93,10 @@ while true; do
         --user )
             export PARSE_AS="username";
             shift; ;;
+        
+        --max-page )
+            export MAX_PAGE="$2"
+            shift 2; ;;
 
         --cduser-dir )
             export CDUSER="TRUE";

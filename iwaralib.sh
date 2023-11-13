@@ -231,6 +231,8 @@ iwara-dl-update-user()
     if [[ "$SHALLOW_UPDATE" ]]; then
         IWARA_QUIET="TRUE"
         iwara-dl-user "$user" "0" # set $2(max_page) == 0
+    elif [[ "$MAX_PAGE" ]]; then
+        iwara-dl-user "$user" "$MAX_PAGE"
     else
         iwara-dl-user "$user"
     fi
