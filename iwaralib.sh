@@ -53,6 +53,15 @@ add-downloaded-id()
             echo "$1" >> .iwara_downloaded;
         fi
         DOWNLOADED_ID_LIST+=("$1")
+        DOWNLOAD_FAILED_LIST=( ${DOWNLOAD_FAILED_LIST[*]/"$1"} )
+    fi
+}
+
+add-failed-id()
+{
+    if [[ "$1" != "" ]]; then
+        DOWNLOAD_FAILED_LIST=( ${DOWNLOAD_FAILED_LIST[*]/"$1"} )
+        DOWNLOAD_FAILED_LIST+=("$1")
     fi
 }
 
@@ -169,7 +178,7 @@ iwara-dl-by-videoid()
                 add-downloaded-id "$videoid";
             else
                 echo "download failed. curl return: $http_return_code"
-                DOWNLOAD_FAILED_LIST+=("${videoid}")
+                add-failed-id "$videoid";
             fi
         fi
     done
@@ -230,20 +239,25 @@ iwara-dl-update-user()
 iwara-dl-retry-dl()
 {
     if (( ${#DOWNLOAD_FAILED_LIST[@]} )); then
-        echo "Download failed on these videoid:"
-        for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-            echo "$id"
-        done
         if [[ "$IWARA_RETRY" == "TRUE" ]] ; then
-            echo "Try resuming..."
-            export RESUME_DL="TRUE"
-            for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
-                iwara-dl-by-videoid "$id"
+            while [[ ${#DOWNLOAD_FAILED_LIST[@]} > 0 && $RETRY_COUNT < $MAX_RETRY_COUNT ]]; do
+                RETRY_COUNT=$[$RETRY_COUNT+1]
+                echo "Retry for the ${RETRY_COUNT} time. Downloads to be resumed:"
+                for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+                    echo "$id"
+                done
+                for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+                    iwara-dl-by-videoid "$id"
+                done
             done
-            if ! [[ "$OPT_SET_RESUME_DL" ]]; then
-                unset RESUME_DL
+            if [[ ${#DOWNLOAD_FAILED_LIST[@]} > 0 ]]; then
+                echo "Unfinished videos after max times of trying:"
+                for id in "${DOWNLOAD_FAILED_LIST[@]}"; do
+                    echo "$id"
+                done
+            else
+                echo "All videos completed"
             fi
-            DOWNLOAD_FAILED_LIST=()
         fi
     fi
 }
