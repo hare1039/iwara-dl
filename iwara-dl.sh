@@ -36,9 +36,9 @@ optional arguments:
   --username [U]            username
   --userpass [P]            password
   --load-ignore-list [File] load the list in file that should not download
-  -r --resume               try resume download
-  --retry                   try to redownload the video if not download completely
+  -r --retry [Count]        try to redownload the video at most [Count] times if not download completely
   --user                    treat input url as usernames
+  --max-page [Maxpage]      only download users' videos from page 1 to [Maxpage]
   --cduser-dir              cd to each user directory
   --quiet-mode              quiet mode
   --login                   log in upfront
@@ -84,13 +84,19 @@ while true; do
             iwara-login;
             shift; ;;
 
-        --retry )
+        -r | --retry )
+            export RETRY_COUNT=0;
+            export MAX_RETRY_COUNT="$2";
             export IWARA_RETRY="TRUE";
-            shift; ;;
+            shift 2; ;;
 
         --user )
             export PARSE_AS="username";
             shift; ;;
+        
+        --max-page )
+            export MAX_PAGE="$2"
+            shift 2; ;;
 
         --cduser-dir )
             export CDUSER="TRUE";
@@ -119,11 +125,6 @@ while true; do
 
         --name-only )
             export PRINT_NAME_ONLY="--silent";
-            shift; ;;
-
-        -r | --resume )
-            export RESUME_DL="TRUE";
-            export OPT_SET_RESUME_DL="TRUE";
             shift; ;;
 
         --updater-v1 )
