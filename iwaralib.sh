@@ -156,6 +156,11 @@ iwara-dl-by-videoid()
             local videousername="$(echo $video_stat | jq --raw-output '.user.username')"
             local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4");
 
+            if $(is-in-iwara-ignore-list $filename); then
+                echo "skip $filename because inside iwara-ignore-list";
+                continue
+            fi
+
             echo "DL: $filename"
             echo "User: $videousername"
 
