@@ -2,10 +2,6 @@
 
 This program downloads `iwara.tv` videos
 
-# *Due to the Recent Iwara website update, This repo can support the following function*
-
-Update on 07/31/2023
-
 To-do list:
 - [x] Download by id
 - [x] Login
@@ -14,7 +10,6 @@ To-do list:
 - [x] Download by playlist
 - [ ] Updater V2
 - [ ] Download by subscription
-Please check later for the updated features.
 
 # Dependency
 ```
