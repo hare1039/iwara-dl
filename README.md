@@ -1,6 +1,8 @@
 # iwara-dl
 
-This program downloads `iwara.tv` videos
+This program downloads `iwara.tv` videos.
+
+For setup on windows 11: please follow this [guide](./WSL.md)
 
 To-do list:
 - [x] Download by id
