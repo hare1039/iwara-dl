@@ -41,7 +41,7 @@ You can see `iwara-dl` downloads the video, but the videos are inside the code d
 ```
 nano ~/.bashrc;
 
-And add
+# And add
 alias iwara-dl='IWARA_USER=hare1039 IWARA_PASS=password /mnt/c/Users/hare1039/Documents/iwara-dl-master/iwara-dl.sh'
 # Ctrl-X and save the file
 
