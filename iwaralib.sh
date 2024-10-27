@@ -156,13 +156,11 @@ iwara-dl-by-videoid()
             local videousername="$(echo $video_stat | jq --raw-output '.user.username')"
             local filename=$(sed $'s/[:|/?";*\\<>\t]/-/g' <<< "${title}-${videoid}.mp4");
 
-            if $(is-in-iwara-ignore-list $filename); then
-                echo "skip $filename because inside iwara-ignore-list";
+            echo "DL: $filename by $videousername"
+            if is-in-iwara-ignore-list "$filename"; then
+                echo "Skip: $filename is ignore by .iwara_ignore"
                 continue
             fi
-
-            echo "DL: $filename"
-            echo "User: $videousername"
 
             if [[ "$ENABLE_SLEEP" == "TRUE" ]] && [[ -n "$IWARA_DOWNLOADED" ]]; then
                 local sleeptime=$(shuf -i 8-13 -n 1)
