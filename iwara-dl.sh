@@ -17,7 +17,8 @@ export IWARA_IGNORE=();
 export DOWNLOADED_ID_LIST=();
 export DOWNLOADING_ID_LIST=();
 export ENABLE_CONTINUE="--continue-at -";
-export ENABLE_SLEEP="TRUE"
+export ENABLE_SLEEP="TRUE";
+export USE_CF_CURL="FALSE";
 
 trap '
   trap - INT # restore default INT handler
@@ -46,6 +47,7 @@ optional arguments:
   --disable-continue        make all video download from start
   --disable-sleep           do not add sleep when download a list of video
   --name-only               output downloaded file name only(hides curl download bar)
+  --use-cf-curl             use this option if you hit cloudfront's bot protection (requires uv installed)
 
   --shallow-update          only download users first page
   --updater-v1              cd to each username folder; update each folder;
@@ -79,6 +81,10 @@ while true; do
         --load-ignore-list )
             add-iwara-ignore-list "$2";
             shift 2; ;;
+
+        --use-cf-curl )
+            export USE_CF_CURL="TRUE";
+            shift; ;;
 
         --login )
             iwara-login;

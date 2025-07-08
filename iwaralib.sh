@@ -10,6 +10,15 @@ calc-argc()
     echo "$argv_count"
 }
 
+curl-get()
+{
+    if [[ "$USE_CF_CURL" == "TRUE" ]]; then
+        uvx --with cloudscraper python "$SCRIPTPATH/cf-curl.py" "$@";
+    else
+        curl "$@";
+    fi
+}
+
 add-iwara-ignore-list()
 {
     local listfile="$1"
@@ -94,7 +103,7 @@ iwara-login()
     if ! [[ "${IWARA_SESSION}" ]]; then
         echox "Logging in..."
 
-        HTML=$(curl 'https://api.iwara.tv/user/login' \
+        HTML=$(curl-get 'https://api.iwara.tv/user/login' \
                     -X POST -H 'Content-Type: application/json' \
                     --data-raw "{\"email\":\"${IWARA_USER}\",\"password\":\"${IWARA_PASS}\"}");
 
@@ -118,7 +127,12 @@ iwara-dl-by-videoid()
         return
     fi
 
-    local video_stat=$(curl --silent ${IWARA_SESSION} https://api.iwara.tv/video/${videoid});
+    local video_stat=$(curl-get --silent ${IWARA_SESSION} https://api.iwara.tv/video/${videoid});
+    if [[ "${video_stat:0:1}" == "<" ]]; then
+        echo "Got invalid API response. hint: try --use-cf-curl to avoid cloudfront's bot protection"
+        return
+    fi
+
     local fileapi=$(echo $video_stat | jq --raw-output ".fileUrl");
 
     if [[ "$fileapi" == "null" ]]; then
@@ -145,7 +159,7 @@ iwara-dl-by-videoid()
     local iwara_expires=$(echo $fileapi | grep -o "expires=[0-9]*" | cut -d'=' -f2);
     local iwara_x_version=$(echo -n "${iwara_filename}_${iwara_expires}_5nFp9kmbNnHdAFhaqMvt" | sha1sum | awk '{print $1}');
 
-    for row in $(curl --silent ${IWARA_SESSION} -H "X-Version: ${iwara_x_version}" "$fileapi" | jq -r ".[] | @base64"); do
+    for row in $(curl-get --silent ${IWARA_SESSION} -H "X-Version: ${iwara_x_version}" "$fileapi" | jq -r ".[] | @base64"); do
         _jq() {
             echo ${row} | base64 --decode | jq -r ${1}
         }
@@ -198,7 +212,7 @@ iwara-dl-user()
     local username="$1";
 
     #https://api.iwara.tv/videos?page=0&sort=date&user=318e6b2c-6f55-4672-916b-f6227e429442
-    local userid=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/profile/$username" | jq --raw-output ".user.id");
+    local userid=$(curl-get ${IWARA_SESSION} --silent "https://api.iwara.tv/profile/$username" | jq --raw-output ".user.id");
 
     if [[ "$2" ]]; then
         max_page=$2
@@ -207,7 +221,7 @@ iwara-dl-user()
     fi
 
     for i in $(eval echo "{0..$max_page}"); do
-        local json_array=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/videos?page=$i&sort=date&user=$userid");
+        local json_array=$(curl-get ${IWARA_SESSION} --silent "https://api.iwara.tv/videos?page=$i&sort=date&user=$userid");
 
         local count=$(echo $json_array | jq '.results | length');
 
@@ -290,7 +304,7 @@ iwara-dl-by-playlist()
     fi
 
     for i in $(eval echo "{0..$max_page}"); do
-        local json_array=$(curl ${IWARA_SESSION} --silent "https://api.iwara.tv/playlist/${playlist_id}?page=$i");
+        local json_array=$(curl-get ${IWARA_SESSION} --silent "https://api.iwara.tv/playlist/${playlist_id}?page=$i");
         local count=$(echo $json_array | jq '.results | length');
 
         if [[ "$count" == "0" ]]; then
