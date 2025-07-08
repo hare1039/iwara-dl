@@ -10,7 +10,6 @@ To-do list:
 - [x] Download by user
 - [x] Updater V1
 - [x] Download by playlist
-- [ ] Updater V2
 - [ ] Download by subscription
 
 # Dependency
@@ -19,6 +18,7 @@ bash
 curl
 jq
 nkf
+uv (optional for bot checks. curl -LsSf https://astral.sh/uv/install.sh | sh)
 ```
 
 # Usage:
@@ -40,6 +40,7 @@ optional arguments:
   --login                   log in upfront
   --accept-insecure         accept insecure https connection
   --name-only               output downloaded file name only(hides curl download bar)
+  --use-cf-curl             use this option if you hit cloudfront's bot protection (requires uv installed)
 
   --shallow-update          only download users first page
   --updater-v1              cd to each username folder; update each folder;
